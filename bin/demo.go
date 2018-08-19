@@ -26,22 +26,28 @@ func main() {
 		log.Fatal(errors.Wrapf(err, "failed to select"))
 	}
 
-	list, err := oath.List()
+	names, err := oath.List()
 
 	if err != nil {
 		log.Fatal(errors.Wrapf(err, "failed to list"))
 	}
 
-	for _, name := range list {
+	log.Println(names)
 
-		calc, err := oath.Calculate(name)
+	for _, name := range names {
+
+		calc, err := oath.Calculate(name.Name)
 
 		if err != nil {
-			log.Fatal(errors.Wrapf(err, "failed to calculate name for %q", name))
+			log.Fatal(errors.Wrapf(err, "failed to calculate name for %q", name.Name))
 		}
 
 		fmt.Printf("%s\t%q\n", calc, name)
 
+	}
+
+	if err := oath.Put("test", ykoath.HmacSha1, ykoath.Totp, 6, []byte("open sesame"), true); err != nil {
+		log.Fatal(err)
 	}
 
 }
