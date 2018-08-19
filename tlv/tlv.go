@@ -1,6 +1,9 @@
 package tlv
 
-import "bytes"
+import (
+	"bytes"
+	"fmt"
+)
 
 // Read will read a number of tagged values from a buffer
 func Read(buf []byte) (map[byte][][]byte, error) {
@@ -70,6 +73,10 @@ func Write(tag byte, values ...[]byte) []byte {
 	// write some length unless this is a one byte value
 	if length > 1 {
 		data = append(data, byte(length))
+	}
+
+	if length > 255 {
+		panic(fmt.Sprintf("too much data too send (%d bytes)", length))
 	}
 
 	return append(data, buf...)

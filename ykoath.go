@@ -15,7 +15,6 @@ type OATH struct {
 
 var (
 	errNoValuesFound = "no values found in response (% x)"
-	errTooMuchData   = "too much data too send (%d bytes)"
 	errUnknownTag    = "unknown tag (%x)"
 )
 
@@ -68,29 +67,15 @@ func (o *OATH) Close() error {
 
 func (o *OATH) send(cla, ins, p1, p2 byte, data ...[]byte) (map[byte][][]byte, error) {
 
-	// TODO: use tlv here and omit nil tags
-
-	var (
-		buf    []byte
-		length int
+	send := append(
+		[]byte{cla, ins, p1, p2},
+		tlv.Write(0x00, data...)...,
 	)
 
-	for _, e := range data {
-		buf = append(buf, e...)
-		length = length + len(e)
 	}
 
-	if length > 255 {
-		return nil, fmt.Errorf(errTooMuchData, length)
-	}
+	res, err := o.card.Transmit(send)
 
-	res, err := o.card.Transmit(append([]byte{
-		cla,
-		ins,
-		p1,
-		p2,
-		byte(length),
-	}, buf...))
 
 	if err != nil {
 		return nil, err
