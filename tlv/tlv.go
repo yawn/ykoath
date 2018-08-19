@@ -42,14 +42,36 @@ func Read(buf []byte) (map[byte][][]byte, error) {
 
 }
 
-// Write produces a tlv buf
-func Write(tag byte, value []byte) []byte {
+// Write produces a tlv or lv packet (if the tag is 0)
+func Write(tag byte, values ...[]byte) []byte {
 
-	var l = uint8(len(value))
+	var (
+		buf    []byte
+		length int
+		data   []byte
+	)
 
-	return append([]byte{
-		tag,
-		byte(l),
-	}, value...)
+	for _, value := range values {
+
+		if value == nil {
+			continue
+		}
+
+		buf = append(buf, value...)
+		length = length + len(value)
+
+	}
+
+	// write the tag unless we skip it
+	if tag != 0x00 {
+		data = append(data, tag)
+	}
+
+	// write some length unless this is a one byte value
+	if length > 1 {
+		data = append(data, byte(length))
+	}
+
+	return append(data, buf...)
 
 }
