@@ -3,14 +3,14 @@ package tlv
 import "bytes"
 
 // Read will read a number of tagged values from a buffer
-func Read(buf []byte) (map[byte][]byte, error) {
+func Read(buf []byte) (map[byte][][]byte, error) {
 
 	var (
 		idx    int
 		length int
 		tag    byte
 		value  []byte
-		values = make(map[byte][]byte)
+		values = make(map[byte][][]byte)
 	)
 
 	for {
@@ -36,7 +36,7 @@ func Read(buf []byte) (map[byte][]byte, error) {
 		value = buf[idx : idx+length]
 		idx = idx + length
 
-		values[tag] = value
+		values[tag] = append(values[tag], value)
 
 	}
 
