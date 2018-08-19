@@ -18,6 +18,8 @@ func main() {
 		log.Fatal(err)
 	}
 
+	oath.Debug = true
+
 	defer oath.Close()
 
 	_, err = oath.Select()
@@ -31,8 +33,6 @@ func main() {
 	if err != nil {
 		log.Fatal(errors.Wrapf(err, "failed to list"))
 	}
-
-	log.Println(names)
 
 	for _, name := range names {
 
