@@ -16,8 +16,7 @@ type OATH struct {
 }
 
 var (
-	errNoValuesFound = "no values found in response (% x)"
-	errUnknownTag    = "unknown tag (%x)"
+	errUnknownTag = "unknown tag (%x)"
 )
 
 func New() (*OATH, error) {

@@ -18,7 +18,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	oath.Debug = true
+	oath.Debug = false
 
 	defer oath.Close()
 
@@ -36,7 +36,10 @@ func main() {
 
 	for _, name := range names {
 
-		calc, err := oath.Calculate(name.Name)
+		calc, err := oath.Calculate(name.Name, func(name string) error {
+			fmt.Printf("*** PLEASE TOUCH YOUR YUBIKEY TO UNLOCK %q ***\n", name)
+			return nil
+		})
 
 		if err != nil {
 			log.Fatal(errors.Wrapf(err, "failed to calculate name for %q", name.Name))
@@ -47,6 +50,10 @@ func main() {
 	}
 
 	if err := oath.Put("test", ykoath.HmacSha1, ykoath.Totp, 6, []byte("open sesame"), true); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := oath.Put("test2", ykoath.HmacSha1, ykoath.Totp, 6, []byte("open sesame"), true); err != nil {
 		log.Fatal(err)
 	}
 
