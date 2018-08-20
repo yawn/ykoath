@@ -2,17 +2,22 @@ package ykoath
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/ebfe/scard"
 	"github.com/yawn/ykoath/tlv"
 )
 
+type debugger interface {
+	Printf(string, ...interface{})
+}
+
+// OATH implements most parts of the TOTP portion of the YKOATH specification
+// https://developers.yubico.com/OATH/YKOATH_Protocol.html
 type OATH struct {
 	card    *scard.Card
 	context *scard.Context
-	Debug   bool
+	Debug   debugger
 }
 
 var (
@@ -73,14 +78,14 @@ func (o *OATH) send(cla, ins, p1, p2 byte, data ...[]byte) (map[byte][][]byte, e
 		tlv.Write(0x00, data...)...,
 	)
 
-	if o.Debug {
-		log.Printf("SEND % x", send)
+	if o.Debug != nil {
+		o.Debug.Printf("SEND % x", send)
 	}
 
 	res, err := o.card.Transmit(send)
 
-	if o.Debug {
-		log.Printf("RECV % x", res)
+	if o.Debug != nil {
+		o.Debug.Printf("RECV % x", res)
 	}
 
 	if err != nil {
