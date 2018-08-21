@@ -5,8 +5,10 @@ import (
 	"fmt"
 )
 
+// Error encapsulates (some) response codes from the spec
 type Error []byte
 
+// Error return the encapsulated error string
 func (e Error) Error() string {
 
 	if bytes.Equal(e, []byte{0x6a, 0x80}) {

@@ -18,6 +18,7 @@ func Read(buf []byte) (map[byte][][]byte, error) {
 
 	for {
 
+		// abort if only the 2-byte response code remains
 		if len(buf)-idx == 2 {
 
 			var code Error = buf[idx:]
@@ -30,15 +31,19 @@ func Read(buf []byte) (map[byte][][]byte, error) {
 
 		}
 
+		// read the tag
 		tag = buf[idx]
 		idx++
 
+		// read the length
 		length = int(buf[idx])
 		idx++
 
+		// read the value
 		value = buf[idx : idx+length]
 		idx = idx + length
 
+		// append the result
 		values[tag] = append(values[tag], value)
 
 	}
@@ -56,6 +61,7 @@ func Write(tag byte, values ...[]byte) []byte {
 
 	for _, value := range values {
 
+		// skip nil values (useful for optional tlv segments)
 		if value == nil {
 			continue
 		}
@@ -65,12 +71,14 @@ func Write(tag byte, values ...[]byte) []byte {
 
 	}
 
-	// write the tag unless we skip it
+	// write the tag unless we skip it (useful for reusing Write for sending the
+	// APDU)
 	if tag != 0x00 {
 		data = append(data, tag)
 	}
 
-	// write some length unless this is a one byte value
+	// write some length unless this is a one byte value (e.g. for the PUT
+	// instruction's "property" byte)
 	if length > 1 {
 		data = append(data, byte(length))
 	}

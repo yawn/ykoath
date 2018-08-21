@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
+// Select encapsulates the results of the "SELECT" instruction
 type Select struct {
 	Algorithm []byte
 	Challenge []byte
@@ -11,6 +12,7 @@ type Select struct {
 	Version   []byte
 }
 
+// Select sends a "SELECT" instruction, initializing the device for an OATH session
 func (o *OATH) Select() (*Select, error) {
 
 	res, err := o.send(0x00, 0xa4, 0x04, 0x00,

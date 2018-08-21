@@ -24,6 +24,7 @@ var (
 	errUnknownTag = "unknown tag (%x)"
 )
 
+// New initializes a new OATH session
 func New() (*OATH, error) {
 
 	context, err := scard.EstablishContext()
@@ -61,6 +62,7 @@ func New() (*OATH, error) {
 
 }
 
+// Close terminates an OATH session
 func (o *OATH) Close() error {
 
 	if err := o.card.Disconnect(scard.LeaveCard); err != nil {
@@ -71,6 +73,7 @@ func (o *OATH) Close() error {
 
 }
 
+// send sends an APDU to the card
 func (o *OATH) send(cla, ins, p1, p2 byte, data ...[]byte) (map[byte][][]byte, error) {
 
 	send := append(

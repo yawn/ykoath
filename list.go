@@ -4,16 +4,19 @@ import (
 	"fmt"
 )
 
+// Name encapsulates the result of the "LIST" instruction
 type Name struct {
 	Algorithm Algorithm
 	Type      Type
 	Name      string
 }
 
+// String returns a string representation of the algorithm
 func (n *Name) String() string {
 	return fmt.Sprintf("%s (%s %s)", n.Name, n.Algorithm, n.Type)
 }
 
+// List sends a "LIST" instruction, return a list of OATH credentials
 func (o *OATH) List() ([]*Name, error) {
 
 	var names []*Name
