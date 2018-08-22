@@ -74,7 +74,7 @@ func (o *OATH) calculate(name string) (string, error) {
 		switch tag {
 
 		case 0x76:
-			return code(value), nil
+			return otp(value), nil
 
 		default:
 			return "", fmt.Errorf(errUnknownTag, tag)
@@ -120,7 +120,7 @@ func (o *OATH) calculateAll() (map[string]string, error) {
 				codes = append(codes, touchRequired)
 
 			case 0x76:
-				codes = append(codes, code(value))
+				codes = append(codes, otp(value))
 
 			default:
 				return nil, fmt.Errorf(errUnknownTag, tag)
@@ -140,8 +140,8 @@ func (o *OATH) calculateAll() (map[string]string, error) {
 
 }
 
-// code converts a value into a code sequence
-func code(value []byte) string {
+// otp converts a value into a (6 or 8 digits) one-time password
+func otp(value []byte) string {
 
 	digits := value[0]
 	code := binary.BigEndian.Uint32(value[1:])
