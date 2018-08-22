@@ -3,6 +3,7 @@ package ykoath
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/ebfe/scard"
 	"github.com/yawn/ykoath/tlv"
@@ -30,9 +31,7 @@ type OATH struct {
 	Debug   debugger
 }
 
-var (
-	errUnknownTag = "unknown tag (%x)"
-)
+var errUnknownTag = "unknown tag (%x)"
 
 // New initializes a new OATH session
 func New() (*OATH, error) {
@@ -87,25 +86,51 @@ func (o *OATH) Close() error {
 // send sends an APDU to the card
 func (o *OATH) send(cla, ins, p1, p2 byte, data ...[]byte) (map[byte][][]byte, error) {
 
-	send := append(
-		[]byte{cla, ins, p1, p2},
-		tlv.Write(0x00, data...)...,
+	var (
+		code    code
+		results []byte
+		send    = append([]byte{cla, ins, p1, p2}, tlv.Write(0x00, data...)...)
 	)
 
-	if o.Debug != nil {
-		o.Debug.Printf("SEND % x", send)
+	for {
+
+		if o.Debug != nil {
+			o.Debug.Printf("SEND % x (%d)", send, len(send))
+		}
+
+		res, err := o.card.Transmit(send)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if o.Debug != nil {
+			o.Debug.Printf("RECV % x (%d)", res, len(res))
+		}
+
+		code = res[len(res)-2:]
+		results = append(results, res[0:len(res)-2]...)
+
+		if code.IsMore() {
+
+			send = []byte{0x00, 0xa5, 0x00, 0x00}
+
+			if o.Debug != nil {
+				o.Debug.Printf("MORE %d", int(code[1]))
+			}
+
+		} else if code.IsSuccess() {
+
+			if o.Debug != nil {
+				o.Debug.Printf("DONE")
+			}
+
+			return tlv.Read(results), nil
+
+		} else {
+			return nil, code
+		}
+
 	}
-
-	res, err := o.card.Transmit(send)
-
-	if o.Debug != nil {
-		o.Debug.Printf("RECV % x", res)
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	return tlv.Read(res)
 
 }

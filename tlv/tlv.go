@@ -1,12 +1,11 @@
 package tlv
 
 import (
-	"bytes"
 	"fmt"
 )
 
 // Read will read a number of tagged values from a buffer
-func Read(buf []byte) (map[byte][][]byte, error) {
+func Read(buf []byte) map[byte][][]byte {
 
 	var (
 		idx    int
@@ -18,17 +17,8 @@ func Read(buf []byte) (map[byte][][]byte, error) {
 
 	for {
 
-		// abort if only the 2-byte response code remains
-		if len(buf)-idx == 2 {
-
-			var code Error = buf[idx:]
-
-			if bytes.Equal(code, []byte{0x90, 0x00}) {
-				return values, nil
-			}
-
-			return values, code
-
+		if len(buf)-idx == 0 {
+			return values
 		}
 
 		// read the tag
