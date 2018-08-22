@@ -1,0 +1,9 @@
+language: go
+sudo: required
+
+before_install:
+  - sudo apt-get install -qy libpcsclite-dev
+  - go get -t -v ./...
+
+script:
+  - go test -race -coverprofile=coverage.txt -covermode=atomic

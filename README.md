@@ -1,6 +1,6 @@
 # ykoath
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/yawn/ykoath)](https://goreportcard.com/report/github.com/yawn/ykoath)
+[![Go Report Card](https://goreportcard.com/badge/github.com/yawn/ykoath)](https://goreportcard.com/report/github.com/yawn/ykoath) [![Build Status](https://travis-ci.org/yawn/ykoath.svg?branch=master)](https://travis-ci.org/yawn/ykoath)
 
 The package `ykoath` implements the Yubikey [YOATH protocol](https://developers.yubico.com/OATH/YKOATH_Protocol.html) over USB with the following exceptions:
 
