@@ -8,7 +8,6 @@ The package `ykoath` implements the Yubikey [YOATH protocol](https://developers.
 * No support for `SET CODE` and subsequently no support for `VALIDATE` and `SELECT` challenges - no authentication schema except requiring touch is supported
 * No support for `DELETE` (removing codes) [yet](https://github.com/yawn/ykoath/issues/2)
 * No support for `RESET` (removing all state from device)
-* No support for `SEND REMAINING` (pagination) [yet](https://github.com/yawn/ykoath/issues/4)
 
 ## Example usage
 
