@@ -3,7 +3,6 @@ package ykoath
 import (
 	"encoding/binary"
 	"fmt"
-	"time"
 
 	"github.com/yawn/ykoath/tlv"
 )
@@ -53,7 +52,7 @@ func (o *OATH) calculate(name string) (string, error) {
 
 	var (
 		buf       = make([]byte, 8)
-		timestamp = time.Now().Unix() / 30
+		timestamp = o.Clock().Unix() / 30
 	)
 
 	binary.BigEndian.PutUint64(buf, uint64(timestamp))
@@ -94,7 +93,7 @@ func (o *OATH) calculateAll() (map[string]string, error) {
 		buf       = make([]byte, 8)
 		codes     []string
 		names     []string
-		timestamp = time.Now().Unix() / 30
+		timestamp = o.Clock().Unix() / 30
 	)
 
 	binary.BigEndian.PutUint64(buf, uint64(timestamp))

@@ -8,6 +8,15 @@ import (
 	"github.com/yawn/ykoath/tlv"
 )
 
+type card interface {
+	Disconnect(scard.Disposition) error
+	Transmit([]byte) ([]byte, error)
+}
+
+type context interface {
+	Release() error
+}
+
 type debugger interface {
 	Printf(string, ...interface{})
 }
@@ -15,8 +24,9 @@ type debugger interface {
 // OATH implements most parts of the TOTP portion of the YKOATH specification
 // https://developers.yubico.com/OATH/YKOATH_Protocol.html
 type OATH struct {
-	card    *scard.Card
-	context *scard.Context
+	card    card
+	context context
+	Clock   func() time.Time
 	Debug   debugger
 }
 
@@ -51,6 +61,7 @@ func New() (*OATH, error) {
 
 			return &OATH{
 				card:    card,
+				Clock:   time.Now,
 				context: context,
 			}, nil
 
