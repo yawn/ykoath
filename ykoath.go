@@ -26,8 +26,8 @@ type debugger interface {
 // https://developers.yubico.com/OATH/YKOATH_Protocol.html
 type OATH struct {
 	card    card
+	clock   func() time.Time
 	context context
-	Clock   func() time.Time
 	Debug   debugger
 }
 
@@ -60,7 +60,7 @@ func New() (*OATH, error) {
 
 			return &OATH{
 				card:    card,
-				Clock:   time.Now,
+				clock:   time.Now,
 				context: context,
 			}, nil
 

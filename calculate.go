@@ -52,7 +52,7 @@ func (o *OATH) calculate(name string) (string, error) {
 
 	var (
 		buf       = make([]byte, 8)
-		timestamp = o.Clock().Unix() / 30
+		timestamp = o.clock().Unix() / 30
 	)
 
 	binary.BigEndian.PutUint64(buf, uint64(timestamp))
@@ -93,7 +93,7 @@ func (o *OATH) calculateAll() (map[string]string, error) {
 		buf       = make([]byte, 8)
 		codes     []string
 		names     []string
-		timestamp = o.Clock().Unix() / 30
+		timestamp = o.clock().Unix() / 30
 	)
 
 	binary.BigEndian.PutUint64(buf, uint64(timestamp))
