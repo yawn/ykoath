@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/ebfe/scard"
-	"github.com/yawn/ykoath/tlv"
 )
 
 type card interface {
@@ -84,12 +83,12 @@ func (o *OATH) Close() error {
 }
 
 // send sends an APDU to the card
-func (o *OATH) send(cla, ins, p1, p2 byte, data ...[]byte) (map[byte][][]byte, error) {
+func (o *OATH) send(cla, ins, p1, p2 byte, data ...[]byte) (tags, error) {
 
 	var (
 		code    code
 		results []byte
-		send    = append([]byte{cla, ins, p1, p2}, tlv.Write(0x00, data...)...)
+		send    = append([]byte{cla, ins, p1, p2}, write(0x00, data...)...)
 	)
 
 	for {
@@ -125,7 +124,7 @@ func (o *OATH) send(cla, ins, p1, p2 byte, data ...[]byte) (map[byte][][]byte, e
 				o.Debug.Printf("DONE")
 			}
 
-			return tlv.Read(results), nil
+			return read(results), nil
 
 		} else {
 			return nil, code

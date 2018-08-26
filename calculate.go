@@ -3,8 +3,6 @@ package ykoath
 import (
 	"encoding/binary"
 	"fmt"
-
-	"github.com/yawn/ykoath/tlv"
 )
 
 const touchRequired = "touch-required"
@@ -58,8 +56,8 @@ func (o *OATH) calculate(name string) (string, error) {
 	binary.BigEndian.PutUint64(buf, uint64(timestamp))
 
 	res, err := o.send(0x00, 0xa2, 0x00, 0x01,
-		tlv.Write(0x71, []byte(name)),
-		tlv.Write(0x74, buf),
+		write(0x71, []byte(name)),
+		write(0x74, buf),
 	)
 
 	if err != nil {
@@ -99,7 +97,7 @@ func (o *OATH) calculateAll() (map[string]string, error) {
 	binary.BigEndian.PutUint64(buf, uint64(timestamp))
 
 	res, err := o.send(0x00, 0xa4, 0x00, 0x01,
-		tlv.Write(0x74, buf),
+		write(0x74, buf),
 	)
 
 	if err != nil {

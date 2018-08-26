@@ -13,7 +13,7 @@ type Name struct {
 
 // String returns a string representation of the algorithm
 func (n *Name) String() string {
-	return fmt.Sprintf("%s (%s %s)", n.Name, n.Algorithm, n.Type)
+	return fmt.Sprintf("%s (%s %s)", n.Name, n.Algorithm.String(), n.Type.String())
 }
 
 // List sends a "LIST" instruction, return a list of OATH credentials

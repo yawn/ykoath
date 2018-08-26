@@ -1,11 +1,13 @@
-package tlv
+package ykoath
 
 import (
 	"fmt"
 )
 
-// Read will read a number of tagged values from a buffer
-func Read(buf []byte) map[byte][][]byte {
+type tags map[byte][][]byte
+
+// read will read a number of tagged values from a buffer
+func read(buf []byte) tags {
 
 	var (
 		idx    int
@@ -41,7 +43,7 @@ func Read(buf []byte) map[byte][][]byte {
 }
 
 // Write produces a tlv or lv packet (if the tag is 0)
-func Write(tag byte, values ...[]byte) []byte {
+func write(tag byte, values ...[]byte) []byte {
 
 	var (
 		buf    []byte
