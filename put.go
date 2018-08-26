@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-var errNametooLong = "name too long (%d > 64)"
+const errNametooLong = "name too long (%d > 64)"
 
 // Put sends a "PUT" instruction, storing a new / overwriting an existing OATH
 // credentials with an algorithm and type, 6 or 8 digits one-time password,

@@ -5,11 +5,10 @@ import (
 	"fmt"
 )
 
-const touchRequired = "touch-required"
-
-var (
+const (
 	errNoValuesFound = "no values found in response (% x)"
 	errUnknownName   = "no such name configued (%s)"
+	touchRequired    = "touch-required"
 )
 
 // Calculate is a high-level function that first identifies all TOTP credentials

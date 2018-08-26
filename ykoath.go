@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/ebfe/scard"
+	"github.com/pkg/errors"
 )
 
 type card interface {
@@ -30,7 +31,16 @@ type OATH struct {
 	Debug   debugger
 }
 
-var errUnknownTag = "unknown tag (%x)"
+const (
+	errFailedToConnect            = "failed to connect to reader"
+	errFailedToDisconnect         = "failed to disconnect from reader"
+	errFailedToEstablishContext   = "failed to establish context"
+	errFailedToListReaders        = "failed to list readers"
+	errFailedToListSuitableReader = "no suitable reader found (out of %d readers)"
+	errFailedToReleaseContext     = "failed to release context"
+	errFailedToTransmit           = "failed to transmit APDU"
+	errUnknownTag                 = "unknown tag (%x)"
+)
 
 // New initializes a new OATH session
 func New() (*OATH, error) {
@@ -38,13 +48,13 @@ func New() (*OATH, error) {
 	context, err := scard.EstablishContext()
 
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, errFailedToEstablishContext)
 	}
 
 	readers, err := context.ListReaders()
 
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, errFailedToEstablishContext)
 	}
 
 	for _, reader := range readers {
@@ -54,7 +64,7 @@ func New() (*OATH, error) {
 			card, err := context.Connect(reader, scard.ShareShared, scard.ProtocolAny)
 
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrapf(err, errFailedToEstablishContext)
 			}
 
 			return &OATH{
@@ -67,7 +77,7 @@ func New() (*OATH, error) {
 
 	}
 
-	return nil, fmt.Errorf("no suitable reader found (out of %d readers)", len(readers))
+	return nil, fmt.Errorf(errFailedToListSuitableReader, len(readers))
 
 }
 
@@ -75,10 +85,14 @@ func New() (*OATH, error) {
 func (o *OATH) Close() error {
 
 	if err := o.card.Disconnect(scard.LeaveCard); err != nil {
-		return err
+		return errors.Wrapf(err, errFailedToDisconnect)
 	}
 
-	return o.context.Release()
+	if err := o.context.Release(); err != nil {
+		return errors.Wrapf(err, errFailedToReleaseContext)
+	}
+
+	return nil
 
 }
 
@@ -100,7 +114,7 @@ func (o *OATH) send(cla, ins, p1, p2 byte, data ...[]byte) (tags, error) {
 		res, err := o.card.Transmit(send)
 
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrapf(err, errFailedToTransmit)
 		}
 
 		if o.Debug != nil {
