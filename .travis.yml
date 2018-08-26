@@ -1,6 +1,9 @@
 language: go
 sudo: required
 
+env:
+  - GO111MODULE=on
+
 before_install:
   - sudo apt-get install -qy libpcsclite-dev
   - go get -t -v ./...
