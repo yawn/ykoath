@@ -25,9 +25,9 @@ func (o *OATH) Select() (*Select, error) {
 
 	s := new(Select)
 
-	for tag, values := range res {
+	for _, tag := range res.tags {
 
-		value := values[0]
+		value := res.values[tag][0]
 
 		switch tag {
 		case 0x7b:

@@ -97,7 +97,7 @@ func (o *OATH) Close() error {
 }
 
 // send sends an APDU to the card
-func (o *OATH) send(cla, ins, p1, p2 byte, data ...[]byte) (tags, error) {
+func (o *OATH) send(cla, ins, p1, p2 byte, data ...[]byte) (*tvs, error) {
 
 	var (
 		code    code

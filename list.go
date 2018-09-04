@@ -27,7 +27,9 @@ func (o *OATH) List() ([]*Name, error) {
 		return nil, err
 	}
 
-	for tag, values := range res {
+	for _, tag := range res.tags {
+
+		values := res.values[tag]
 
 		switch tag {
 		case 0x72:

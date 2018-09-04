@@ -63,9 +63,9 @@ func (o *OATH) calculate(name string) (string, error) {
 		return "", err
 	}
 
-	for tag, values := range res {
+	for _, tag := range res.tags {
 
-		value := values[0]
+		value := res.values[tag][0]
 
 		switch tag {
 
@@ -103,7 +103,9 @@ func (o *OATH) calculateAll() (map[string]string, error) {
 		return nil, err
 	}
 
-	for tag, values := range res {
+	for _, tag := range res.tags {
+
+		values := res.values[tag]
 
 		for _, value := range values {
 
