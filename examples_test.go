@@ -12,7 +12,7 @@ func Example() {
 	oath, _ := New()
 
 	// fix the clock
-	oath.clock = func() time.Time {
+	oath.Clock = func() time.Time {
 		return time.Unix(59, 0)
 	}
 

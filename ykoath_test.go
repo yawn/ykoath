@@ -183,7 +183,7 @@ func TestCalculate6DigitTouch(t *testing.T) {
 
 	client := new(OATH)
 	client.card = testCard
-	client.clock = func() time.Time {
+	client.Clock = func() time.Time {
 		return time.Unix(1534946339, 0)
 	}
 
@@ -330,7 +330,7 @@ func TestCalculate8DigitNoTouch(t *testing.T) {
 
 	client := new(OATH)
 	client.card = testCard
-	client.clock = func() time.Time {
+	client.Clock = func() time.Time {
 		return time.Unix(1534946339, 0)
 	}
 
@@ -546,7 +546,7 @@ func TestPutAndCalculateTestVector(t *testing.T) {
 
 	client := new(OATH)
 	client.card = testCard
-	client.clock = func() time.Time {
+	client.Clock = func() time.Time {
 		return time.Unix(59, 0)
 	}
 
