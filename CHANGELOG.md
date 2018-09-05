@@ -10,8 +10,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 
 - Made `Clock` public again
-- Simplified `debugger` interface 
+- Simplified `debugger` interface
+- Added Windows test
 
 ### Fixed
 
 - Fixed iteration order over tags, leading to parsing errors
+- Fixed Linux test by updating scard dependency
