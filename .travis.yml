@@ -2,9 +2,7 @@ language: go
 sudo: required
 
 go:
-  - "tip"
   - "1.11.x"
-  - "1.10.x"
 
 env:
   global:
