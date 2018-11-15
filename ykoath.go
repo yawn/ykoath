@@ -52,7 +52,7 @@ func New() (*OATH, error) {
 	readers, err := context.ListReaders()
 
 	if err != nil {
-		return nil, errors.Wrapf(err, errFailedToEstablishContext)
+		return nil, errors.Wrapf(err, errFailedToListReaders)
 	}
 
 	for _, reader := range readers {
@@ -62,7 +62,7 @@ func New() (*OATH, error) {
 			card, err := context.Connect(reader, scard.ShareShared, scard.ProtocolAny)
 
 			if err != nil {
-				return nil, errors.Wrapf(err, errFailedToEstablishContext)
+				return nil, errors.Wrapf(err, errFailedToConnect)
 			}
 
 			return &OATH{
