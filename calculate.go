@@ -88,8 +88,6 @@ func (o *OATH) calculateAll() (map[string]string, error) {
 
 	var (
 		buf       = make([]byte, 8)
-		codes     []string
-		names     []string
 		timestamp = o.Clock().Unix() / 30
 	)
 
@@ -103,39 +101,29 @@ func (o *OATH) calculateAll() (map[string]string, error) {
 		return nil, err
 	}
 
-	for _, tag := range res.tags {
+	all := make(map[string]string, len(res.tagList)/2)
 
-		values := res.values[tag]
-
-		for _, value := range values {
-
-			switch tag {
-
-			case 0x71:
-				names = append(names, string(value))
-
-			case 0x7c:
-				codes = append(codes, touchRequired)
-
-			case 0x76:
-				codes = append(codes, otp(value))
-
-			default:
-				return nil, fmt.Errorf(errUnknownTag, tag)
-			}
-
+	for i := 0; i < len(res.tagList); i++ {
+		nameTag := res.tagList[i]
+		if nameTag.name != 0x71 {
+			return nil, fmt.Errorf(errUnknownTag, nameTag.name)
 		}
+		name := string(nameTag.value)
+		i++
 
-	}
+		valueTag := res.tagList[i]
 
-	all := make(map[string]string, len(names))
-
-	for idx, name := range names {
-		all[name] = codes[idx]
+		switch valueTag.name {
+		case 0x7c:
+			all[name] = touchRequired
+		case 0x76:
+			all[name] = otp(valueTag.value)
+		default:
+			return nil, fmt.Errorf(errUnknownTag, valueTag.name)
+		}
 	}
 
 	return all, nil
-
 }
 
 // otp converts a value into a (6 or 8 digits) one-time password

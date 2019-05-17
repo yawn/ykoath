@@ -4,10 +4,16 @@ import (
 	"fmt"
 )
 
+type tvsTag struct {
+	name  byte
+	value []byte
+}
+
 // tvs is map of tags to slice of byte slices that remembers the insertion order
 type tvs struct {
-	tags   []byte
-	values map[byte][][]byte
+	tags    []byte
+	values  map[byte][][]byte
+	tagList []tvsTag
 }
 
 // add adds another tagged value and memorizes the insertion order
@@ -21,6 +27,10 @@ func (t *tvs) add(tag byte, value []byte) {
 
 	t.values[tag] = append(prev, value)
 
+	t.tagList = append(t.tagList, tvsTag{
+		name:  tag,
+		value: value,
+	})
 }
 
 // read will read a number of tagged values from a buffer
