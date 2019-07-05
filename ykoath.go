@@ -5,17 +5,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ebfe/scard"
+	pcsc "github.com/gballet/go-libpcsclite"
 	"github.com/pkg/errors"
 )
 
 type card interface {
-	Disconnect(scard.Disposition) error
-	Transmit([]byte) ([]byte, error)
+	Disconnect(uint32) error
+	Transmit([]byte) ([]byte, *pcsc.SCardIoRequest, error)
 }
 
-type context interface {
-	Release() error
+type client interface {
+	ReleaseContext() error
 }
 
 type debugger func(string, ...interface{})
@@ -23,10 +23,10 @@ type debugger func(string, ...interface{})
 // OATH implements most parts of the TOTP portion of the YKOATH specification
 // https://developers.yubico.com/OATH/YKOATH_Protocol.html
 type OATH struct {
-	card    card
-	Clock   func() time.Time
-	context context
-	Debug   debugger
+	card   card
+	Clock  func() time.Time
+	client client
+	Debug  debugger
 }
 
 const (
@@ -43,13 +43,13 @@ const (
 // New initializes a new OATH session
 func New() (*OATH, error) {
 
-	context, err := scard.EstablishContext()
+	client, err := pcsc.EstablishContext("", pcsc.ScopeSystem)
 
 	if err != nil {
 		return nil, errors.Wrapf(err, errFailedToEstablishContext)
 	}
 
-	readers, err := context.ListReaders()
+	readers, err := client.ListReaders()
 
 	if err != nil {
 		return nil, errors.Wrapf(err, errFailedToListReaders)
@@ -59,16 +59,16 @@ func New() (*OATH, error) {
 
 		if strings.Contains(reader, "Yubikey") {
 
-			card, err := context.Connect(reader, scard.ShareShared, scard.ProtocolAny)
+			card, err := client.Connect(reader, pcsc.ShareShared, pcsc.ProtocolAny)
 
 			if err != nil {
 				return nil, errors.Wrapf(err, errFailedToConnect)
 			}
 
 			return &OATH{
-				card:    card,
-				Clock:   time.Now,
-				context: context,
+				card:   card,
+				Clock:  time.Now,
+				client: client,
 			}, nil
 
 		}
@@ -82,11 +82,11 @@ func New() (*OATH, error) {
 // Close terminates an OATH session
 func (o *OATH) Close() error {
 
-	if err := o.card.Disconnect(scard.LeaveCard); err != nil {
+	if err := o.card.Disconnect(pcsc.LeaveCard); err != nil {
 		return errors.Wrapf(err, errFailedToDisconnect)
 	}
 
-	if err := o.context.Release(); err != nil {
+	if err := o.client.ReleaseContext(); err != nil {
 		return errors.Wrapf(err, errFailedToReleaseContext)
 	}
 
@@ -109,7 +109,7 @@ func (o *OATH) send(cla, ins, p1, p2 byte, data ...[]byte) (*tvs, error) {
 			o.Debug("SEND % x (%d)", send, len(send))
 		}
 
-		res, err := o.card.Transmit(send)
+		res, _, err := o.card.Transmit(send)
 
 		if err != nil {
 			return nil, errors.Wrapf(err, errFailedToTransmit)

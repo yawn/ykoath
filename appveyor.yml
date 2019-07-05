@@ -6,10 +6,7 @@ environment:
   GOPATH: c:\gopath
   GO111MODULE: on
 
-stack: go 1.11
-
-before_test:
-  - go get -t -v ./...
+stack: go 1.12
 
 test_script:
   - go test -coverprofile=coverage.txt -covermode=atomic -parallel 1 -race -tags ci

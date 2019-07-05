@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ebfe/scard"
+	pcsc "github.com/gballet/go-libpcsclite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -30,14 +30,14 @@ type testCard struct {
 	mock.Mock
 }
 
-func (t *testCard) Disconnect(d scard.Disposition) error {
+func (t *testCard) Disconnect(d uint32) error {
 	args := t.Called(d)
 	return args.Error(0)
 }
 
-func (t *testCard) Transmit(b []byte) ([]byte, error) {
+func (t *testCard) Transmit(b []byte) ([]byte, *pcsc.SCardIoRequest, error) {
 	args := t.Called(b)
-	return args.Get(0).([]byte), args.Error(1)
+	return args.Get(0).([]byte), nil, args.Error(1)
 }
 
 func TestCalculate6DigitTouch(t *testing.T) {
@@ -80,6 +80,7 @@ func TestCalculate6DigitTouch(t *testing.T) {
 				0x39, 0x39, 0x61, 0xff,
 			},
 			nil,
+			nil,
 		).Once().
 		On(
 			"Transmit",
@@ -111,6 +112,7 @@ func TestCalculate6DigitTouch(t *testing.T) {
 				0x74, 0x65, 0x73, 0x74, 0x2d, 0x74, 0x65, 0x73, 0x74, 0x2d, 0x74, 0x65,
 				0x73, 0x74, 0x61, 0xff,
 			},
+			nil,
 			nil,
 		).Once().
 		On(
@@ -144,6 +146,7 @@ func TestCalculate6DigitTouch(t *testing.T) {
 				0x38, 0x32, 0x61, 0x5a,
 			},
 			nil,
+			nil,
 		).Once().
 		On(
 			"Transmit",
@@ -162,6 +165,7 @@ func TestCalculate6DigitTouch(t *testing.T) {
 				0x05, 0x08, 0x04, 0xaf, 0x17, 0x64, 0x90, 0x00,
 			},
 			nil,
+			nil,
 		).Once().
 		On(
 			"Transmit",
@@ -178,6 +182,7 @@ func TestCalculate6DigitTouch(t *testing.T) {
 			[]byte{
 				0x76, 0x05, 0x06, 0x00, 0x0c, 0xc7, 0xe4, 0x90, 0x00,
 			},
+			nil,
 			nil,
 		).Once()
 
