@@ -57,7 +57,7 @@ func New() (*OATH, error) {
 
 	for _, reader := range readers {
 
-		if strings.Contains(reader, "Yubikey") {
+		if strings.Contains(strings.ToLower(reader), "yubikey") {
 
 			card, err := context.Connect(reader, scard.ShareShared, scard.ProtocolAny)
 
