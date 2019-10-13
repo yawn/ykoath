@@ -27,27 +27,21 @@ func (o *OATH) List() ([]*Name, error) {
 		return nil, err
 	}
 
-	for _, tag := range res.tags {
+	for _, tv := range res {
 
-		values := res.values[tag]
-
-		switch tag {
+		switch tv.tag {
 		case 0x72:
 
-			for _, value := range values {
-
-				name := &Name{
-					Algorithm: Algorithm(value[0] & 0x0f),
-					Name:      string(value[1:]),
-					Type:      Type(value[0] & 0xf0),
-				}
-
-				names = append(names, name)
-
+			name := &Name{
+				Algorithm: Algorithm(tv.value[0] & 0x0f),
+				Name:      string(tv.value[1:]),
+				Type:      Type(tv.value[0] & 0xf0),
 			}
 
+			names = append(names, name)
+
 		default:
-			return nil, fmt.Errorf(errUnknownTag, tag)
+			return nil, fmt.Errorf(errUnknownTag, tv.tag)
 		}
 
 	}

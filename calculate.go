@@ -63,17 +63,15 @@ func (o *OATH) calculate(name string) (string, error) {
 		return "", err
 	}
 
-	for _, tag := range res.tags {
+	for _, tv := range res {
 
-		value := res.values[tag][0]
-
-		switch tag {
+		switch tv.tag {
 
 		case 0x76:
-			return otp(value), nil
+			return otp(tv.value), nil
 
 		default:
-			return "", fmt.Errorf(errUnknownTag, tag)
+			return "", fmt.Errorf(errUnknownTag, tv.tag)
 		}
 
 	}
@@ -103,27 +101,21 @@ func (o *OATH) calculateAll() (map[string]string, error) {
 		return nil, err
 	}
 
-	for _, tag := range res.tags {
+	for _, tv := range res {
 
-		values := res.values[tag]
+		switch tv.tag {
 
-		for _, value := range values {
+		case 0x71:
+			names = append(names, string(tv.value))
 
-			switch tag {
+		case 0x7c:
+			codes = append(codes, touchRequired)
 
-			case 0x71:
-				names = append(names, string(value))
+		case 0x76:
+			codes = append(codes, otp(tv.value))
 
-			case 0x7c:
-				codes = append(codes, touchRequired)
-
-			case 0x76:
-				codes = append(codes, otp(value))
-
-			default:
-				return nil, fmt.Errorf(errUnknownTag, tag)
-			}
-
+		default:
+			return nil, fmt.Errorf(errUnknownTag, tv.tag)
 		}
 
 	}
