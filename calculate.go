@@ -9,6 +9,7 @@ import (
 const (
 	errNoValuesFound = "no values found in response (% x)"
 	errUnknownName   = "no such name configued (%s)"
+	errMultipleMatches = "multiple matches found (%s)"
 	touchRequired    = "touch-required"
 )
 
@@ -27,12 +28,16 @@ func (o *OATH) Calculate(name string, touchRequiredCallback func(string) error) 
 	// support matching by name without issuer in the same way that ykman does
 	// https://github.com/Yubico/yubikey-manager/blob/f493008d78a0ad09016f23dabd1cb658929d9c0e/ykman/cli/oath.py#L543
 	var key, code string
+	var matches []string
 	for k, c := range res {
 		if strings.Contains(strings.ToLower(k), strings.ToLower(name)) {
 			key = k
 			code = c
-			break
+			matches = append(matches, k)
 		}
+	}
+	if len(matches) > 1 {
+		return "", fmt.Errorf(errMultipleMatches, strings.Join(matches, ","))
 	}
 
 	if key == "" {
