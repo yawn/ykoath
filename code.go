@@ -13,12 +13,15 @@ func (c code) Error() string {
 
 	if bytes.Equal(c, []byte{0x6a, 0x80}) {
 		return "wrong syntax"
+	} else if bytes.Equal(c, []byte{0x69, 0x82}) {
+		return "requires auth"
 	} else if bytes.Equal(c, []byte{0x69, 0x84}) {
 		return "no such object"
+	} else if bytes.Equal(c, []byte{0x65, 0x81}) {
+		return "generic error"
 	}
 
 	return fmt.Sprintf("unknown (% x)", []byte(c))
-
 }
 
 // IsMore indicates more data that needs to be fetched

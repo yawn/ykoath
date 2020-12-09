@@ -26,15 +26,14 @@ func (o *OATH) Select() (*Select, error) {
 	s := new(Select)
 
 	for _, tv := range res {
-
 		switch tv.tag {
-		case 0x7b:
+		case TAG_ALGORITHM:
 			s.Algorithm = tv.value
-		case 0x74:
+		case TAG_CHALLENGE:
 			s.Challenge = tv.value
-		case 0x71:
+		case TAG_NAME:
 			s.Name = tv.value
-		case 0x79:
+		case TAG_VERSION:
 			s.Version = tv.value
 		default:
 			return nil, fmt.Errorf(errUnknownTag, tv.tag)
