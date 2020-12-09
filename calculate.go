@@ -28,7 +28,7 @@ func ErrorTouchCallback(_ string) error {
 // fires the callback and then fetches the name again while blocking during
 // the device awaiting touch
 func (o *OATH) Calculate(name string, touchRequiredCallback func(string) error) (string, error) {
-	res, err := o.calculateAll()
+	res, err := o.CalculateAll()
 
 	if err != nil {
 		return "", nil
@@ -59,7 +59,7 @@ func (o *OATH) Calculate(name string, touchRequiredCallback func(string) error) 
 			return "", err
 		}
 
-		return o.calculate(key)
+		return o.CalculateOne(key)
 
 	}
 
