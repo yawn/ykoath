@@ -1,7 +1,14 @@
 package ykoath
 
 import (
+	"crypto/sha1"
+	"crypto/sha256"
+	"crypto/sha512"
+	"encoding/base64"
 	"fmt"
+	"golang.org/x/crypto/pbkdf2"
+	"hash"
+	"strings"
 )
 
 // Select encapsulates the results of the "SELECT" instruction
@@ -10,6 +17,44 @@ type Select struct {
 	Challenge []byte
 	Name      []byte
 	Version   []byte
+}
+
+// Salt returns the selected salt
+func (s Select) Salt() []byte {
+	return s.Name
+}
+
+// Hash returns a Hash constructor for the algorithm
+func (s Select) Hash() (func() hash.Hash, error) {
+	// If no agorithm found, default to sha1
+	if len(s.Algorithm) == 0 {
+		return sha1.New, nil
+	}
+	switch s.Algorithm[0] {
+	case A_HMAC_SHA1:
+		return sha1.New, nil
+	case A_HMAC_SHA256:
+		return sha256.New, nil
+	case A_HMAC_SHA512:
+		return sha512.New, nil
+	}
+	return sha1.New, fmt.Errorf("unknown hash algoritm %x", s.Algorithm)
+}
+
+// DeviceID returns the selected device ID
+func (s Select) DeviceID() string {
+	h := sha256.New()
+	h.Write(s.Salt())
+	sum := h.Sum(nil)
+	sum = sum[:16]
+	return strings.Replace(base64.StdEncoding.EncodeToString(sum), "=", "", -1)
+}
+
+// DeriveKey returns a key as a byte array from a given passphrase
+func (s Select) DeriveKey(passphrase string) []byte {
+	iters := 1000
+	keyLength := 16
+	return pbkdf2.Key([]byte(passphrase), s.Salt(), iters, keyLength, sha1.New)
 }
 
 // Select sends a "SELECT" instruction, initializing the device for an OATH session

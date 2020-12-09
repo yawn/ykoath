@@ -7,18 +7,27 @@ import (
 )
 
 const (
-	errNoValuesFound = "no values found in response (% x)"
-	errUnknownName   = "no such name configued (%s)"
+	errNoValuesFound   = "no values found in response (% x)"
+	errUnknownName     = "no such name configued (%s)"
 	errMultipleMatches = "multiple matches found (%s)"
-	touchRequired    = "touch-required"
+	touchRequired      = "touch-required"
 )
+
+// NoTouchCallback performas a noop for users that have no touch support
+func NoTouchCallback(_ string) error {
+	return nil
+}
+
+// ErrorTouchCallback raises an error for users that have no touch support
+func ErrorTouchCallback(_ string) error {
+	return fmt.Errorf("requires touch but no callback specified")
+}
 
 // Calculate is a high-level function that first identifies all TOTP credentials
 // that are configured and returns the matching one (if no touch is required) or
 // fires the callback and then fetches the name again while blocking during
 // the device awaiting touch
 func (o *OATH) Calculate(name string, touchRequiredCallback func(string) error) (string, error) {
-
 	res, err := o.calculateAll()
 
 	if err != nil {
@@ -58,9 +67,9 @@ func (o *OATH) Calculate(name string, touchRequiredCallback func(string) error) 
 
 }
 
-// calculate implements the "CALCULATE" instruction to fetch a single
+// CalculateOne implements the "CALCULATE" instruction to fetch a single
 // truncated TOTP response
-func (o *OATH) calculate(name string) (string, error) {
+func (o *OATH) CalculateOne(name string) (string, error) {
 
 	var (
 		buf       = make([]byte, 8)
@@ -95,9 +104,9 @@ func (o *OATH) calculate(name string) (string, error) {
 
 }
 
-// calculateAll implements the "CALCULATE ALL" instruction to fetch all TOTP
+// CalculateAll implements the "CALCULATE ALL" instruction to fetch all TOTP
 // tokens and their codes (or a constant indicating a touch requirement)
-func (o *OATH) calculateAll() (map[string]string, error) {
+func (o *OATH) CalculateAll() (map[string]string, error) {
 
 	var (
 		buf       = make([]byte, 8)
