@@ -3,6 +3,7 @@ package ykoath
 import (
 	"encoding/binary"
 	"fmt"
+	"math"
 	"strings"
 )
 
@@ -135,8 +136,16 @@ func (o *OATH) CalculateAll() (map[string]string, error) {
 		case TAG_TOUCH:
 			codes = append(codes, touchRequired)
 
+		case TAG_RESPONSE:
+			o.Debug("tag no full response: %x", tv.value)
+			return nil, fmt.Errorf("unable to handle full response %x", tv.value)
+
 		case TAG_TRUNCATED_RESPONSE:
 			codes = append(codes, otp(tv.value))
+
+		case TAG_NO_RESPONSE:
+			o.Debug("tag no response. Is HOTP %x", tv.value)
+			return nil, fmt.Errorf("unable to handle HOTP response %x", tv.value)
 
 		default:
 			return nil, fmt.Errorf(errUnknownTag, tv.tag)
@@ -156,9 +165,10 @@ func (o *OATH) CalculateAll() (map[string]string, error) {
 
 // otp converts a value into a (6 or 8 digits) one-time password
 func otp(value []byte) string {
-
-	digits := value[0]
+	digits := int(value[0])
 	code := binary.BigEndian.Uint32(value[1:])
+	// Limit code to a maximum number of digits
+	code = code % uint32(math.Pow(10.0, float64(digits)))
+	// Format as string with a minimum number of digits, padded with 0s
 	return fmt.Sprintf(fmt.Sprintf("%%0%dd", digits), code)
-
 }
