@@ -13,7 +13,7 @@ func (o *OATH) Validate(s *Select, key []byte) (bool, error) {
 	}
 
 	mac := hmac.New(algo, key)
-	mac.Write(s.Challenge)
+	_, _ = mac.Write(s.Challenge)
 	responseSum := mac.Sum(nil)
 
 	randChallenge := make([]byte, 8)
@@ -22,12 +22,12 @@ func (o *OATH) Validate(s *Select, key []byte) (bool, error) {
 		return false, err
 	}
 	mac = hmac.New(algo, key)
-	mac.Write(randChallenge)
+	_, _ = mac.Write(randChallenge)
 	challengeSum := mac.Sum(nil)
 
-	response := write(TAG_RESPONSE, responseSum)
-	challenge := write(TAG_CHALLENGE, challengeSum)
-	_, err = o.send(0x00, INST_VALIDATE, 0x00, 0x00, response, challenge)
+	response := write(tagResponse, responseSum)
+	challenge := write(tagChallenge, challengeSum)
+	_, err = o.send(0x00, instValidate, 0x00, 0x00, response, challenge)
 	if err != nil {
 		return false, err
 	}

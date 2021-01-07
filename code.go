@@ -11,13 +11,13 @@ type code []byte
 // Error return the encapsulated error string
 func (c code) Error() string {
 
-	if bytes.Equal(c, []byte{0x6a, 0x80}) {
+	if bytes.Equal(c, rsErrWrongSyntax) {
 		return "wrong syntax"
-	} else if bytes.Equal(c, []byte{0x69, 0x82}) {
+	} else if bytes.Equal(c, rsErrRequiresAuth) {
 		return "requires auth"
-	} else if bytes.Equal(c, []byte{0x69, 0x84}) {
+	} else if bytes.Equal(c, rsErrNoSuchObject) {
 		return "no such object"
-	} else if bytes.Equal(c, []byte{0x65, 0x81}) {
+	} else if bytes.Equal(c, rsErrGenericError) {
 		return "generic error"
 	}
 

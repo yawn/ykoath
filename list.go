@@ -21,7 +21,7 @@ func (o *OATH) List() ([]*Name, error) {
 
 	var names []*Name
 
-	res, err := o.send(0x00, INST_LIST, 0x00, 0x00)
+	res, err := o.send(0x00, instList, 0x00, 0x00)
 
 	if err != nil {
 		return nil, err
@@ -30,12 +30,12 @@ func (o *OATH) List() ([]*Name, error) {
 	for _, tv := range res {
 
 		switch tv.tag {
-		case TAG_NAME_LIST:
+		case tagNameList:
 
 			name := &Name{
-				Algorithm: Algorithm(tv.value[0] & MASK_ALGO),
+				Algorithm: Algorithm(tv.value[0] & maskAlgo),
 				Name:      string(tv.value[1:]),
-				Type:      Type(tv.value[0] & MASK_TYPE),
+				Type:      Type(tv.value[0] & maskType),
 			}
 
 			names = append(names, name)

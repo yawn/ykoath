@@ -79,9 +79,9 @@ func (o *OATH) CalculateOne(name string) (string, error) {
 
 	binary.BigEndian.PutUint64(buf, uint64(timestamp))
 
-	res, err := o.send(0x00, INST_CALCULATE, 0x00, RS_TRUNCATED_RESPONSE,
-		write(TAG_NAME, []byte(name)),
-		write(TAG_CHALLENGE, buf),
+	res, err := o.send(0x00, instCalculate, 0x00, rsTruncatedResponse,
+		write(tagName, []byte(name)),
+		write(tagChallenge, buf),
 	)
 
 	if err != nil {
@@ -92,7 +92,7 @@ func (o *OATH) CalculateOne(name string) (string, error) {
 
 		switch tv.tag {
 
-		case TAG_TRUNCATED_RESPONSE:
+		case tagTruncatedResponse:
 			return otp(tv.value), nil
 
 		default:
@@ -118,8 +118,8 @@ func (o *OATH) CalculateAll() (map[string]string, error) {
 
 	binary.BigEndian.PutUint64(buf, uint64(timestamp))
 
-	res, err := o.send(0x00, INST_CALCULATE_ALL, 0x00, RS_TRUNCATED_RESPONSE,
-		write(TAG_CHALLENGE, buf),
+	res, err := o.send(0x00, instCalculateAll, 0x00, rsTruncatedResponse,
+		write(tagChallenge, buf),
 	)
 
 	if err != nil {
@@ -130,20 +130,20 @@ func (o *OATH) CalculateAll() (map[string]string, error) {
 
 		switch tv.tag {
 
-		case TAG_NAME:
+		case tagName:
 			names = append(names, string(tv.value))
 
-		case TAG_TOUCH:
+		case tagTouch:
 			codes = append(codes, touchRequired)
 
-		case TAG_RESPONSE:
+		case tagResponse:
 			o.Debug("tag no full response: %x", tv.value)
 			return nil, fmt.Errorf("unable to handle full response %x", tv.value)
 
-		case TAG_TRUNCATED_RESPONSE:
+		case tagTruncatedResponse:
 			codes = append(codes, otp(tv.value))
 
-		case TAG_NO_RESPONSE:
+		case tagNoResponse:
 			o.Debug("tag no response. Is HOTP %x", tv.value)
 			return nil, fmt.Errorf("unable to handle HOTP response %x", tv.value)
 

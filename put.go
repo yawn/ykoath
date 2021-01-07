@@ -17,18 +17,18 @@ func (o *OATH) Put(name string, a Algorithm, t Type, digits uint8, key []byte, t
 
 	var (
 		// High 4 bits is type, low 4 bits is algorithm
-		alg = (MASK_TYPE|byte(a))&MASK_ALGO | byte(t)
+		alg = (maskType|byte(a))&maskAlgo | byte(t)
 		dig = byte(digits)
 		prp []byte
 	)
 
 	if touch {
-		prp = write(TAG_PROPERTY, []byte{PROP_REQUIRE_TOUCH})
+		prp = write(tagProperty, []byte{propRequireTouch})
 	}
 
-	_, err := o.send(0x00, INST_PUT, 0x00, 0x00,
-		write(TAG_NAME, []byte(name)),
-		write(TAG_KEY, []byte{alg, dig}, key),
+	_, err := o.send(0x00, instPut, 0x00, 0x00,
+		write(tagName, []byte(name)),
+		write(tagKey, []byte{alg, dig}, key),
 		prp,
 	)
 

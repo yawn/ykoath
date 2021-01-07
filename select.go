@@ -31,11 +31,11 @@ func (s Select) Hash() (func() hash.Hash, error) {
 		return sha1.New, nil
 	}
 	switch s.Algorithm[0] {
-	case A_HMAC_SHA1:
+	case algoHMACSHA1:
 		return sha1.New, nil
-	case A_HMAC_SHA256:
+	case algoHMACSHA256:
 		return sha256.New, nil
-	case A_HMAC_SHA512:
+	case algoHMACSHA512:
 		return sha512.New, nil
 	}
 	return sha1.New, fmt.Errorf("unknown hash algoritm %x", s.Algorithm)
@@ -44,7 +44,7 @@ func (s Select) Hash() (func() hash.Hash, error) {
 // DeviceID returns the selected device ID
 func (s Select) DeviceID() string {
 	h := sha256.New()
-	h.Write(s.Salt())
+	_, _ = h.Write(s.Salt())
 	sum := h.Sum(nil)
 	sum = sum[:16]
 	return strings.Replace(base64.StdEncoding.EncodeToString(sum), "=", "", -1)
@@ -72,13 +72,13 @@ func (o *OATH) Select() (*Select, error) {
 
 	for _, tv := range res {
 		switch tv.tag {
-		case TAG_ALGORITHM:
+		case tagAlgorithm:
 			s.Algorithm = tv.value
-		case TAG_CHALLENGE:
+		case tagChallenge:
 			s.Challenge = tv.value
-		case TAG_NAME:
+		case tagName:
 			s.Name = tv.value
-		case TAG_VERSION:
+		case tagVersion:
 			s.Version = tv.value
 		default:
 			return nil, fmt.Errorf(errUnknownTag, tv.tag)

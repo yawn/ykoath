@@ -5,10 +5,10 @@ import "fmt"
 const (
 
 	// Hotp describes HMAC based one-time passwords (https://tools.ietf.org/html/rfc4226)
-	Hotp Type = 0x10
+	Hotp Type = typeHOTP
 
 	// Totp describes time-based one-time passwords (https://tools.ietf.org/html/rfc6238)
-	Totp Type = 0x20
+	Totp Type = typeTOTP
 )
 
 // Type denotes the kind of derivation used for the one-time password
