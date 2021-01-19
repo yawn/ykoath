@@ -1,8 +1,10 @@
 package ykoath
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/rand"
+	"fmt"
 )
 
 // Validate the OATH with a provided key
@@ -26,10 +28,27 @@ func (o *OATH) Validate(s *Select, key []byte) (bool, error) {
 	challengeSum := mac.Sum(nil)
 
 	response := write(tagResponse, responseSum)
-	challenge := write(tagChallenge, challengeSum)
-	_, err = o.send(0x00, instValidate, 0x00, 0x00, response, challenge)
+	challenge := write(tagChallenge, randChallenge)
+
+	res, err := o.send(0x00, instValidate, 0x00, 0x00, response, challenge)
 	if err != nil {
 		return false, err
 	}
-	return true, nil
+
+	var result bool
+
+	for _, tv := range res {
+		switch tv.tag {
+		case tagResponse:
+			result = bytes.Equal(tv.value, challengeSum)
+		default:
+			return false, fmt.Errorf(errUnknownTag, tv.tag)
+		}
+	}
+
+	if !result {
+		return result, fmt.Errorf(errFailedChallenge)
+	}
+
+	return result, nil
 }
