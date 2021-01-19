@@ -60,3 +60,33 @@ if err := oath.Put("test2", ykoath.HmacSha1, ykoath.Totp, 6, []byte("open sesame
 }
 
 ```
+
+## Authenticated example
+
+If your Yubikey has a password, the above example will fail with an authentication required error. To authenticate, you will need to make a `Validate` call before any method that requires authentication. (Eg. `List()` or `Calculate()`). You can also determine if validation is required by checking the value of `Select.Challenge`.
+
+Here is a partial example:
+```
+// Make select call
+select, err = oath.Select()
+if err != nil {
+    logger.Fatal(err)
+}
+
+// If required, authenticate with password
+if select.Challenge != nil {
+    password := getYourUserPasswordFromSomewhere()
+ 	passKey := select.DeriveKey(string(bytePassword))
+    ok, err := oath.Validate(select, passKey)
+    if err != nil {
+        logger.Fatal(err)
+    }
+    if !ok {
+        logger.Fatal("failed validation, password is incorrect")
+    }
+}
+
+// Now you can call other functions
+names, err := oath.List()
+
+```

@@ -11,9 +11,8 @@ type tv struct {
 
 type tvs []tv
 
-// read will read a number of tagged values from a buffer
+// read will read a number of tagged values from a buffer.
 func read(buf []byte) (tvs tvs) {
-
 	var (
 		idx    int
 		length int
@@ -22,7 +21,6 @@ func read(buf []byte) (tvs tvs) {
 	)
 
 	for {
-
 		if len(buf)-idx == 0 {
 			return tvs
 		}
@@ -37,21 +35,18 @@ func read(buf []byte) (tvs tvs) {
 
 		// read the value
 		value = buf[idx : idx+length]
-		idx = idx + length
+		idx += length
 
 		// append the result
 		tvs = append(tvs, tv{
 			tag:   tag,
 			value: value,
 		})
-
 	}
-
 }
 
-// Write produces a tlv or lv packet (if the tag is 0)
+// Write produces a tlv or lv packet (if the tag is 0).
 func write(tag byte, values ...[]byte) []byte {
-
 	var (
 		buf    []byte
 		length int
@@ -59,7 +54,6 @@ func write(tag byte, values ...[]byte) []byte {
 	)
 
 	for _, value := range values {
-
 		// skip nil values (useful for optional tlv segments)
 		if value == nil {
 			continue
@@ -67,12 +61,11 @@ func write(tag byte, values ...[]byte) []byte {
 
 		buf = append(buf, value...)
 		length = length + len(value)
-
 	}
 
 	// write the tag unless we skip it (useful for reusing Write for sending the
 	// APDU)
-	if tag != 0x00 {
+	if tag != tagBlank {
 		data = append(data, tag)
 	}
 

@@ -392,10 +392,10 @@ func TestList(t *testing.T) {
 
 func TestPutAndCalculateTestVector(t *testing.T) {
 
-	tt := []struct{
-		Name string
+	tt := []struct {
+		Name  string
 		Query string
-	} {
+	}{
 		{
 			"full identifier",
 			"testvector",
@@ -448,7 +448,7 @@ func TestPutAndCalculateTestVector(t *testing.T) {
 				return time.Unix(59, 0)
 			}
 
-			err := client.Put("testvector", HmacSha1, Totp, 8, []byte("12345678901234567890"), false)
+			err := client.Put("testvector", algoHMACSHA1, Totp, 8, []byte("12345678901234567890"), false)
 
 			assert.NoError(err)
 
@@ -520,8 +520,8 @@ func TestPutAndCalculateTestVector(t *testing.T) {
 			return time.Unix(59, 0)
 		}
 
-		err := client.Put("testvector1", HmacSha1, Totp, 8, []byte("12345678901234567890"), false)
-		err = client.Put("testvector2", HmacSha1, Totp, 8, []byte("12345678901234567890"), false)
+		err := client.Put("testvector1", algoHMACSHA1, Totp, 8, []byte("12345678901234567890"), false)
+		err = client.Put("testvector2", algoHMACSHA1, Totp, 8, []byte("12345678901234567890"), false)
 
 		assert.NoError(err)
 
@@ -574,7 +574,7 @@ func init() {
 
 	vectors = map[string]*vector{
 		"test-01-1e5f2db9-477e-41af-bd2e-60bc569ae871": &vector{
-			a:          HmacSha1,
+			a:          algoHMACSHA1,
 			t:          Totp,
 			digits:     6,
 			key:        []byte("12345678901234567890"),
@@ -583,7 +583,7 @@ func init() {
 			testvector: "287082",
 		},
 		"test-02-2a7cbca9-baef-47e3-8ce8-788bc6853e12": &vector{
-			a:          HmacSha256,
+			a:          algoHMACSHA256,
 			t:          Totp,
 			digits:     6,
 			key:        []byte("12345678901234567890123456789012"),
@@ -592,7 +592,7 @@ func init() {
 			testvector: "119246",
 		},
 		"test-03-b01019ed-2af1-48cc-a64c-fa9b424db993": &vector{
-			a:          HmacSha512,
+			a:          algoHMACSHA512,
 			t:          Totp,
 			digits:     6,
 			key:        []byte("1234567890123456789012345678901234567890123456789012345678901234"),
@@ -601,7 +601,7 @@ func init() {
 			testvector: "693936",
 		},
 		"test-04-e62171f0-4cf6-499e-b988-6ef36b213cc6": &vector{
-			a:          HmacSha1,
+			a:          algoHMACSHA1,
 			t:          Totp,
 			digits:     6,
 			key:        []byte("12345678901234567890"),
@@ -610,7 +610,7 @@ func init() {
 			testvector: "287082",
 		},
 		"test-05-458af9ee-caaa-4716-bfb8-bd828757955d": &vector{
-			a:          HmacSha256,
+			a:          algoHMACSHA256,
 			t:          Totp,
 			digits:     6,
 			key:        []byte("12345678901234567890123456789012"),
@@ -619,7 +619,7 @@ func init() {
 			testvector: "119246",
 		},
 		"test-06-2138a991-ec70-48cb-83e6-f80da47c93e4": &vector{
-			a:          HmacSha512,
+			a:          algoHMACSHA512,
 			t:          Totp,
 			digits:     6,
 			key:        []byte("1234567890123456789012345678901234567890123456789012345678901234"),
@@ -628,7 +628,7 @@ func init() {
 			testvector: "693936",
 		},
 		"test-07-a70a2520-7e51-45b2-baab-0e35220b06fe": &vector{
-			a:          HmacSha1,
+			a:          algoHMACSHA1,
 			t:          Totp,
 			digits:     8,
 			key:        []byte("12345678901234567890"),
@@ -637,7 +637,7 @@ func init() {
 			testvector: "94287082",
 		},
 		"test-08-83fe3208-b192-46c2-9cb2-14ee917b4d60": &vector{
-			a:          HmacSha256,
+			a:          algoHMACSHA256,
 			t:          Totp,
 			digits:     8,
 			key:        []byte("12345678901234567890123456789012"),
@@ -646,7 +646,7 @@ func init() {
 			testvector: "46119246",
 		},
 		"test-09-cc9d122e-9b51-435e-b48e-ab1a17157e3c": &vector{
-			a:          HmacSha512,
+			a:          algoHMACSHA512,
 			t:          Totp,
 			digits:     8,
 			key:        []byte("1234567890123456789012345678901234567890123456789012345678901234"),
@@ -655,7 +655,7 @@ func init() {
 			testvector: "90693936",
 		},
 		"test-10-97a58938-8ea6-4143-ae10-8adb92bdc335": &vector{
-			a:          HmacSha1,
+			a:          algoHMACSHA1,
 			t:          Totp,
 			digits:     8,
 			key:        []byte("12345678901234567890"),
@@ -664,7 +664,7 @@ func init() {
 			testvector: "94287082",
 		},
 		"test-11-887fd38b-80b3-4d7a-8671-82bef63151a6": &vector{
-			a:          HmacSha256,
+			a:          algoHMACSHA256,
 			t:          Totp,
 			digits:     8,
 			key:        []byte("12345678901234567890123456789012"),
@@ -673,7 +673,7 @@ func init() {
 			testvector: "46119246",
 		},
 		"test-12-daee50d1-7bbf-41e6-a65b-d34046dba287": &vector{
-			a:          HmacSha512,
+			a:          algoHMACSHA512,
 			t:          Totp,
 			digits:     8,
 			key:        []byte("1234567890123456789012345678901234567890123456789012345678901234"),
