@@ -50,6 +50,11 @@ func New() (*OATH, error) {
 
 // NewFromSerial creates an OATH session for a specific key
 func NewFromSerial(serial string) (*OATH, error) {
+	return NewFromSerialList([]string{serial})
+}
+
+// NewFromSerialList creates an OATH session from the first match found for a list of keys
+func NewFromSerialList(serialList []string) (*OATH, error) {
 	context, err := scard.EstablishContext()
 
 	if err != nil {
@@ -80,17 +85,19 @@ func NewFromSerial(serial string) (*OATH, error) {
 			context: context,
 		}
 
-		if serial == "" {
+		if len(serialList) == 0 {
 			return &o, nil
 		}
 
-		cardSerial, err := o.Serial()
+		serial, err := o.Serial()
 		if err != nil {
 			return nil, errors.Wrapf(err, errFailedToReadSerial)
 		}
 
-		if serial == cardSerial {
-			return &o, nil
+		for _, match := range serialList {
+			if serial == match {
+				return &o, nil
+			}
 		}
 	}
 
