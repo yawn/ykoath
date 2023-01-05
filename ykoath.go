@@ -73,12 +73,12 @@ func NewFromSerialList(serialList []string) (*OATH, error) {
 
 		for _, match := range serialList {
 			if serial == match {
-				return &yubikey, nil
+				return yubikey, nil
 			}
 		}
 	}
 
-	return nil, fmt.Errorf(errFailedToListSuitableReader, len(readers))
+	return nil, fmt.Errorf(errFailedToListSuitableReader, len(yubikeys))
 }
 
 // NewSet returns a slice of all Yubikeys on the system
@@ -102,13 +102,19 @@ func NewSet() ([]*OATH, error) {
 			continue
 		}
 
+		card, err := context.Connect(reader, scard.ShareShared, scard.ProtocolAny)
+
+		if err != nil {
+			return nil, errors.Wrapf(err, errFailedToConnect)
+		}
+
 		o := OATH{
 			card:    card,
 			Clock:   time.Now,
 			context: context,
 		}
 
-		yubikeys := append(yubikeys, &o)
+		yubikeys = append(yubikeys, &o)
 	}
 
 	return yubikeys, nil
