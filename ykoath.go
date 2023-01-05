@@ -55,28 +55,51 @@ func NewFromSerial(serial string) (*OATH, error) {
 
 // NewFromSerialList creates an OATH session from the first match found for a list of keys
 func NewFromSerialList(serialList []string) (*OATH, error) {
+	yubikeys, err := NewSet()
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, yubikey := range yubikeys {
+		if len(serialList) == 0 {
+			return yubikey, nil
+		}
+
+		serial, err := yubikey.Serial()
+		if err != nil {
+			return nil, errors.Wrapf(err, errFailedToReadSerial)
+		}
+
+		for _, match := range serialList {
+			if serial == match {
+				return &yubikey, nil
+			}
+		}
+	}
+
+	return nil, fmt.Errorf(errFailedToListSuitableReader, len(readers))
+}
+
+// NewSet returns a slice of all Yubikeys on the system
+func NewSet() ([]*OATH, error) {
 	context, err := scard.EstablishContext()
 
 	if err != nil {
-		return nil, errors.Wrapf(err, errFailedToEstablishContext)
+		return []*OATH{}, errors.Wrapf(err, errFailedToEstablishContext)
 	}
 
 	readers, err := context.ListReaders()
 
 	if err != nil {
-		return nil, errors.Wrapf(err, errFailedToListReaders)
+		return []*OATH{}, errors.Wrapf(err, errFailedToListReaders)
 	}
 
-	for _, reader := range readers {
+	var yubikeys []*OATH
 
+	for _, reader := range readers {
 		if !strings.Contains(strings.ToLower(reader), "yubikey") {
 			continue
-		}
-
-		card, err := context.Connect(reader, scard.ShareShared, scard.ProtocolAny)
-
-		if err != nil {
-			return nil, errors.Wrapf(err, errFailedToConnect)
 		}
 
 		o := OATH{
@@ -85,23 +108,10 @@ func NewFromSerialList(serialList []string) (*OATH, error) {
 			context: context,
 		}
 
-		if len(serialList) == 0 {
-			return &o, nil
-		}
-
-		serial, err := o.Serial()
-		if err != nil {
-			return nil, errors.Wrapf(err, errFailedToReadSerial)
-		}
-
-		for _, match := range serialList {
-			if serial == match {
-				return &o, nil
-			}
-		}
+		yubikeys := append(yubikeys, &o)
 	}
 
-	return nil, fmt.Errorf(errFailedToListSuitableReader, len(readers))
+	return yubikeys, nil
 }
 
 // Close terminates an OATH session
