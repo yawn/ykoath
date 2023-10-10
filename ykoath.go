@@ -57,7 +57,6 @@ func New() (*OATH, error) {
 
 	for _, reader := range readers {
 		if strings.Contains(strings.ToLower(reader), "yubikey") {
-
 			card, err := context.Connect(reader, scard.ShareShared, scard.ProtocolAny)
 			if err != nil {
 				return nil, fmt.Errorf("%w: %w", errFailedToConnect, err)
@@ -68,7 +67,6 @@ func New() (*OATH, error) {
 				Clock:   time.Now,
 				context: context,
 			}, nil
-
 		}
 	}
 
@@ -89,6 +87,7 @@ func (o *OATH) Close() error {
 }
 
 // send sends an APDU to the card
+// nolint: unparam
 func (o *OATH) send(cla, ins, p1, p2 byte, data ...[]byte) (tvs, error) {
 	var (
 		code    code
@@ -97,7 +96,6 @@ func (o *OATH) send(cla, ins, p1, p2 byte, data ...[]byte) (tvs, error) {
 	)
 
 	for {
-
 		if o.Debug != nil {
 			o.Debug("SEND % x (%d)", send, len(send))
 		}
@@ -114,25 +112,23 @@ func (o *OATH) send(cla, ins, p1, p2 byte, data ...[]byte) (tvs, error) {
 		code = res[len(res)-2:]
 		results = append(results, res[0:len(res)-2]...)
 
-		if code.IsMore() {
-
+		switch {
+		case code.IsMore():
 			send = []byte{0x00, 0xa5, 0x00, 0x00}
 
 			if o.Debug != nil {
 				o.Debug("MORE %d", int(code[1]))
 			}
 
-		} else if code.IsSuccess() {
-
+		case code.IsSuccess():
 			if o.Debug != nil {
 				o.Debug("DONE")
 			}
 
 			return read(results), nil
 
-		} else {
+		default:
 			return nil, code
 		}
-
 	}
 }

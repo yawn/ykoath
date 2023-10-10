@@ -25,7 +25,7 @@ func (t *testCard) Disconnect(d scard.Disposition) error {
 
 func (t *testCard) Transmit(b []byte) ([]byte, error) {
 	args := t.Called(b)
-	return args.Get(0).([]byte), args.Error(1)
+	return args.Get(0).([]byte), args.Error(1) //nolint:forcetypeassert
 }
 
 type vector struct {
@@ -48,7 +48,6 @@ func TestCalculate(t *testing.T) {
 	assert := assert.New(t)
 
 	for idx, k := range keys {
-
 		var (
 			testCard = new(testCard)
 			touched  = false
@@ -63,7 +62,7 @@ func TestCalculate(t *testing.T) {
 					0x00, 0x00, 0x01,
 				}).
 			Return(
-				[]byte{
+				[]byte{ //nolint:dupl // false-positive
 					0x71, 0x2c, 0x74, 0x65, 0x73, 0x74, 0x2d, 0x30, 0x31, 0x2d, 0x31, 0x65,
 					0x35, 0x66, 0x32, 0x64, 0x62, 0x39, 0x2d, 0x34, 0x37, 0x37, 0x65, 0x2d,
 					0x34, 0x31, 0x61, 0x66, 0x2d, 0x62, 0x64, 0x32, 0x65, 0x2d, 0x36, 0x30,
@@ -95,7 +94,7 @@ func TestCalculate(t *testing.T) {
 					0x00, 0xa5, 0x00, 0x00,
 				}).
 			Return(
-				[]byte{
+				[]byte{ //nolint:dupl // false-positive
 					0x01, 0xd1, 0xce, 0x71, 0x2c, 0x74, 0x65, 0x73, 0x74, 0x2d, 0x30, 0x36,
 					0x2d, 0x32, 0x31, 0x33, 0x38, 0x61, 0x39, 0x39, 0x31, 0x2d, 0x65, 0x63,
 					0x37, 0x30, 0x2d, 0x34, 0x38, 0x63, 0x62, 0x2d, 0x38, 0x33, 0x65, 0x36,
@@ -255,7 +254,6 @@ func TestCalculate(t *testing.T) {
 					},
 					nil,
 				).Once()
-
 		}
 
 		client := new(OATH)
@@ -277,7 +275,6 @@ func TestCalculate(t *testing.T) {
 
 		assert.Equal(v.testvector, res)
 		testCard.AssertExpectations(t)
-
 	}
 }
 
@@ -294,7 +291,7 @@ func TestList(t *testing.T) {
 				0x00, 0xa1, 0x00, 0x00,
 			}).
 		Return(
-			[]byte{
+			[]byte{ //nolint:dupl // false-positive
 				0x72, 0x2d, 0x21, 0x74, 0x65, 0x73, 0x74, 0x2d, 0x30, 0x31, 0x2d, 0x31,
 				0x65, 0x35, 0x66, 0x32, 0x64, 0x62, 0x39, 0x2d, 0x34, 0x37, 0x37, 0x65,
 				0x2d, 0x34, 0x31, 0x61, 0x66, 0x2d, 0x62, 0x64, 0x32, 0x65, 0x2d, 0x36,
@@ -326,7 +323,7 @@ func TestList(t *testing.T) {
 				0x00, 0xa5, 0x00, 0x00,
 			}).
 		Return(
-			[]byte{
+			[]byte{ //nolint:dupl // false-positive
 				0x2d, 0x65, 0x63, 0x37, 0x30, 0x2d, 0x34, 0x38, 0x63, 0x62, 0x2d, 0x38,
 				0x33, 0x65, 0x36, 0x2d, 0x66, 0x38, 0x30, 0x64, 0x61, 0x34, 0x37, 0x63,
 				0x39, 0x33, 0x65, 0x34, 0x72, 0x2d, 0x21, 0x74, 0x65, 0x73, 0x74, 0x2d,
@@ -377,13 +374,11 @@ func TestList(t *testing.T) {
 	assert.Len(res, len(vectors))
 
 	for idx, r := range res {
-
 		name := keys[idx]
 
 		assert.Equal(vectors[name].a, r.Algorithm)
 		assert.Equal(vectors[name].name, r.Name)
 		assert.Equal(vectors[name].t, r.Type)
-
 	}
 
 	testCard.AssertExpectations(t)
@@ -519,8 +514,9 @@ func TestPutAndCalculateTestVector(t *testing.T) {
 		}
 
 		err := client.Put("testvector1", HmacSha1, Totp, 8, []byte("12345678901234567890"), false)
-		err = client.Put("testvector2", HmacSha1, Totp, 8, []byte("12345678901234567890"), false)
+		assert.NoError(err)
 
+		err = client.Put("testvector2", HmacSha1, Totp, 8, []byte("12345678901234567890"), false)
 		assert.NoError(err)
 
 		_, err = client.Calculate("test", nil)
@@ -566,7 +562,7 @@ func TestSelectTOTP(t *testing.T) {
 	testCard.AssertExpectations(t)
 }
 
-func init() {
+func init() { //nolint:gochecknoinits
 	vectors = map[string]*vector{
 		"test-01-1e5f2db9-477e-41af-bd2e-60bc569ae871": {
 			a:          HmacSha1,
