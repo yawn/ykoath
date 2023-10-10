@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2018 Joern Barthel <joern.barthel@kreuzwerker.de>
+// SPDX-License-Identifier: Apache-2.0
+
 package ykoath
 
 import (
@@ -10,7 +13,6 @@ const errNametooLong = "name too long (%d > 64)"
 // credentials with an algorithm and type, 6 or 8 digits one-time password,
 // shared secrets and touch-required bit
 func (o *OATH) Put(name string, a Algorithm, t Type, digits uint8, key []byte, touch bool) error {
-
 	if l := len(name); l > 64 {
 		return fmt.Errorf(errNametooLong, l)
 	}
@@ -32,5 +34,4 @@ func (o *OATH) Put(name string, a Algorithm, t Type, digits uint8, key []byte, t
 	)
 
 	return err
-
 }

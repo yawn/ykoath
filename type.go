@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2018 Joern Barthel <joern.barthel@kreuzwerker.de>
+// SPDX-License-Identifier: Apache-2.0
+
 package ykoath
 
 import "fmt"
@@ -16,7 +19,6 @@ type Type byte
 
 // String returns a string representation of the type
 func (t Type) String() string {
-
 	switch t {
 	case Hotp:
 		return "HOTP"
@@ -25,5 +27,4 @@ func (t Type) String() string {
 	default:
 		return fmt.Sprintf("unknown %x", byte(t))
 	}
-
 }

@@ -9,6 +9,9 @@
 # the `language` matrix defined below to confirm you have the correct set of
 # supported CodeQL languages.
 #
+# SPDX-FileCopyrightText: 2018 Joern Barthel <joern.barthel@kreuzwerker.de>
+# SPDX-License-Identifier: Apache-2.0
+
 name: "CodeQL"
 
 on:

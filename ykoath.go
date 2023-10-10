@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2018 Joern Barthel <joern.barthel@kreuzwerker.de>
+// SPDX-License-Identifier: Apache-2.0
+
 package ykoath
 
 import (
@@ -42,25 +45,20 @@ const (
 
 // New initializes a new OATH session
 func New() (*OATH, error) {
-
 	context, err := scard.EstablishContext()
-
 	if err != nil {
 		return nil, errors.Wrapf(err, errFailedToEstablishContext)
 	}
 
 	readers, err := context.ListReaders()
-
 	if err != nil {
 		return nil, errors.Wrapf(err, errFailedToListReaders)
 	}
 
 	for _, reader := range readers {
-
 		if strings.Contains(strings.ToLower(reader), "yubikey") {
 
 			card, err := context.Connect(reader, scard.ShareShared, scard.ProtocolAny)
-
 			if err != nil {
 				return nil, errors.Wrapf(err, errFailedToConnect)
 			}
@@ -72,16 +70,13 @@ func New() (*OATH, error) {
 			}, nil
 
 		}
-
 	}
 
 	return nil, fmt.Errorf(errFailedToListSuitableReader, len(readers))
-
 }
 
 // Close terminates an OATH session
 func (o *OATH) Close() error {
-
 	if err := o.card.Disconnect(scard.LeaveCard); err != nil {
 		return errors.Wrapf(err, errFailedToDisconnect)
 	}
@@ -91,12 +86,10 @@ func (o *OATH) Close() error {
 	}
 
 	return nil
-
 }
 
 // send sends an APDU to the card
 func (o *OATH) send(cla, ins, p1, p2 byte, data ...[]byte) (tvs, error) {
-
 	var (
 		code    code
 		results []byte
@@ -110,7 +103,6 @@ func (o *OATH) send(cla, ins, p1, p2 byte, data ...[]byte) (tvs, error) {
 		}
 
 		res, err := o.card.Transmit(send)
-
 		if err != nil {
 			return nil, errors.Wrapf(err, errFailedToTransmit)
 		}
@@ -143,5 +135,4 @@ func (o *OATH) send(cla, ins, p1, p2 byte, data ...[]byte) (tvs, error) {
 		}
 
 	}
-
 }
