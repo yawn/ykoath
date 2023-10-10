@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	errNoValuesFound = "no values found in response (% x)"
-	errUnknownName   = "no such name configued (%s)"
+	errNoValuesFound   = "no values found in response (% x)"
+	errUnknownName     = "no such name configued (%s)"
 	errMultipleMatches = "multiple matches found (%s)"
-	touchRequired    = "touch-required"
+	touchRequired      = "touch-required"
 )
 
 // Calculate is a high-level function that first identifies all TOTP credentials
@@ -18,9 +18,7 @@ const (
 // fires the callback and then fetches the name again while blocking during
 // the device awaiting touch
 func (o *OATH) Calculate(name string, touchRequiredCallback func(string) error) (string, error) {
-
 	res, err := o.calculateAll()
-
 	if err != nil {
 		return "", nil
 	}
@@ -55,13 +53,11 @@ func (o *OATH) Calculate(name string, touchRequiredCallback func(string) error) 
 	}
 
 	return code, nil
-
 }
 
 // calculate implements the "CALCULATE" instruction to fetch a single
 // truncated TOTP response
 func (o *OATH) calculate(name string) (string, error) {
-
 	var (
 		buf       = make([]byte, 8)
 		timestamp = o.Clock().Unix() / 30
@@ -73,13 +69,11 @@ func (o *OATH) calculate(name string) (string, error) {
 		write(0x71, []byte(name)),
 		write(0x74, buf),
 	)
-
 	if err != nil {
 		return "", err
 	}
 
 	for _, tv := range res {
-
 		switch tv.tag {
 
 		case 0x76:
@@ -88,17 +82,14 @@ func (o *OATH) calculate(name string) (string, error) {
 		default:
 			return "", fmt.Errorf(errUnknownTag, tv.tag)
 		}
-
 	}
 
 	return "", fmt.Errorf(errNoValuesFound, res)
-
 }
 
 // calculateAll implements the "CALCULATE ALL" instruction to fetch all TOTP
 // tokens and their codes (or a constant indicating a touch requirement)
 func (o *OATH) calculateAll() (map[string]string, error) {
-
 	var (
 		buf       = make([]byte, 8)
 		codes     []string
@@ -111,13 +102,11 @@ func (o *OATH) calculateAll() (map[string]string, error) {
 	res, err := o.send(0x00, 0xa4, 0x00, 0x01,
 		write(0x74, buf),
 	)
-
 	if err != nil {
 		return nil, err
 	}
 
 	for _, tv := range res {
-
 		switch tv.tag {
 
 		case 0x71:
@@ -132,7 +121,6 @@ func (o *OATH) calculateAll() (map[string]string, error) {
 		default:
 			return nil, fmt.Errorf(errUnknownTag, tv.tag)
 		}
-
 	}
 
 	all := make(map[string]string, len(names))
@@ -142,14 +130,11 @@ func (o *OATH) calculateAll() (map[string]string, error) {
 	}
 
 	return all, nil
-
 }
 
 // otp converts a value into a (6 or 8 digits) one-time password
 func otp(value []byte) string {
-
 	digits := value[0]
 	code := binary.BigEndian.Uint32(value[1:])
 	return fmt.Sprintf(fmt.Sprintf("%%0%dd", digits), code)
-
 }
