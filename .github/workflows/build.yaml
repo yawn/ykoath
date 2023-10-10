@@ -1,0 +1,75 @@
+# SPDX-FileCopyrightText: 2023 Steffen Vogel <post@steffenvogel.de>
+# SPDX-License-Identifier: Apache-2.0
+
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/github-workflow.json
+---
+name: Build
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+
+jobs:
+  build:
+    name: Build
+    
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macOS-latest, windows-latest ]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      if: matrix.os == 'ubuntu-latest'
+      run: sudo apt-get install -y
+            libpcsclite-dev
+
+    - name: Setup Go
+      uses: actions/setup-go@v4
+      with:
+        go-version-file: go.mod
+        check-latest: true
+
+    - name: Lint
+      # TODO: golangci-lint v1.54 is currently broken on Windows?
+      if: matrix.os != 'windows-latest'
+      uses: golangci/golangci-lint-action@v3
+      with:
+        version: v1.54.0
+
+    - name: Set up gotestfmt
+      run: go install github.com/gotesttools/gotestfmt/v2/cmd/gotestfmt@latest
+
+    - name: Run Go tests
+      shell: bash
+      run: |
+        set -euo pipefail
+        go test \
+          -v \
+          -json \
+          -coverpkg ./... \
+          -tags ci \
+          -coverprofile cover.profile \
+          ./... 2>&1 | \
+        tee gotest.log | \
+        gotestfmt
+
+    - name: Upload test log
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-log
+        path: gotest.log
+        if-no-files-found: error
+
+    - name: Report test coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: cover.profile
