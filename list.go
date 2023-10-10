@@ -41,7 +41,7 @@ func (o *OATH) List() ([]*Name, error) {
 			names = append(names, name)
 
 		default:
-			return nil, fmt.Errorf(errUnknownTag, tv.tag)
+			return nil, fmt.Errorf("%w (%#x)", errUnknownTag, tv.tag)
 		}
 	}
 

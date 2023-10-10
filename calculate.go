@@ -83,7 +83,7 @@ func (o *OATH) calculate(name string) (string, error) {
 			return otp(tv.value), nil
 
 		default:
-			return "", fmt.Errorf(errUnknownTag, tv.tag)
+			return "", fmt.Errorf("%w (%#x)", errUnknownTag, tv.tag)
 		}
 	}
 
@@ -122,7 +122,7 @@ func (o *OATH) calculateAll() (map[string]string, error) {
 			codes = append(codes, otp(tv.value))
 
 		default:
-			return nil, fmt.Errorf(errUnknownTag, tv.tag)
+			return nil, fmt.Errorf("%w (%#x)", errUnknownTag, tv.tag)
 		}
 	}
 
