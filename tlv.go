@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2018 Joern Barthel <joern.barthel@kreuzwerker.de>
+// SPDX-License-Identifier: Apache-2.0
+
 package ykoath
 
 import (
@@ -13,7 +16,6 @@ type tvs []tv
 
 // read will read a number of tagged values from a buffer
 func read(buf []byte) (tvs tvs) {
-
 	var (
 		idx    int
 		length int
@@ -46,12 +48,10 @@ func read(buf []byte) (tvs tvs) {
 		})
 
 	}
-
 }
 
 // Write produces a tlv or lv packet (if the tag is 0)
 func write(tag byte, values ...[]byte) []byte {
-
 	var (
 		buf    []byte
 		length int
@@ -87,5 +87,4 @@ func write(tag byte, values ...[]byte) []byte {
 	}
 
 	return append(data, buf...)
-
 }

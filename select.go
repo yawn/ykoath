@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2018 Joern Barthel <joern.barthel@kreuzwerker.de>
+// SPDX-License-Identifier: Apache-2.0
+
 package ykoath
 
 import (
@@ -14,11 +17,9 @@ type Select struct {
 
 // Select sends a "SELECT" instruction, initializing the device for an OATH session
 func (o *OATH) Select() (*Select, error) {
-
 	res, err := o.send(0x00, 0xa4, 0x04, 0x00,
 		[]byte{0xa0, 0x00, 0x00, 0x05, 0x27, 0x21, 0x01},
 	)
-
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +27,6 @@ func (o *OATH) Select() (*Select, error) {
 	s := new(Select)
 
 	for _, tv := range res {
-
 		switch tv.tag {
 		case 0x7b:
 			s.Algorithm = tv.value
@@ -39,9 +39,7 @@ func (o *OATH) Select() (*Select, error) {
 		default:
 			return nil, fmt.Errorf(errUnknownTag, tv.tag)
 		}
-
 	}
 
 	return s, nil
-
 }

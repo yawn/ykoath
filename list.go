@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2018 Joern Barthel <joern.barthel@kreuzwerker.de>
+// SPDX-License-Identifier: Apache-2.0
+
 package ykoath
 
 import (
@@ -18,17 +21,14 @@ func (n *Name) String() string {
 
 // List sends a "LIST" instruction, return a list of OATH credentials
 func (o *OATH) List() ([]*Name, error) {
-
 	var names []*Name
 
 	res, err := o.send(0x00, 0xa1, 0x00, 0x00)
-
 	if err != nil {
 		return nil, err
 	}
 
 	for _, tv := range res {
-
 		switch tv.tag {
 		case 0x72:
 
@@ -43,9 +43,7 @@ func (o *OATH) List() ([]*Name, error) {
 		default:
 			return nil, fmt.Errorf(errUnknownTag, tv.tag)
 		}
-
 	}
 
 	return names, nil
-
 }

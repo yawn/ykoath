@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2018 Joern Barthel <joern.barthel@kreuzwerker.de>
+// SPDX-License-Identifier: Apache-2.0
+
 //go:build !ci
 // +build !ci
 
@@ -9,7 +12,6 @@ import (
 )
 
 func Example() {
-
 	oath, _ := New()
 
 	// fix the clock
@@ -37,5 +39,4 @@ func Example() {
 	// Output:
 	// testvector (HMAC-SHA1 TOTP)
 	// 94287082
-
 }

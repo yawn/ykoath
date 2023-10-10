@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2018 Joern Barthel <joern.barthel@kreuzwerker.de>
+// SPDX-License-Identifier: Apache-2.0
+
 package internal
 
 import (
@@ -9,7 +12,6 @@ import (
 // Dump will dump a buffer into a format suitable for the inclusion in go
 // tests (e.g. the send and res buffers from the send() function)
 func Dump(buf []byte) {
-
 	const lim = 12
 
 	var chunk []byte
@@ -22,7 +24,7 @@ func Dump(buf []byte) {
 	}
 
 	if len(buf) > 0 {
-		chunks = append(chunks, buf[:len(buf)])
+		chunks = append(chunks, buf[:])
 	}
 
 	for _, chunk := range chunks {
@@ -36,5 +38,4 @@ func Dump(buf []byte) {
 		fmt.Fprintf(os.Stderr, "%s,\n", strings.Join(line, ", "))
 
 	}
-
 }

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2018 Joern Barthel <joern.barthel@kreuzwerker.de>
+// SPDX-License-Identifier: Apache-2.0
+
 package ykoath
 
 import "fmt"
@@ -18,7 +21,6 @@ type Algorithm byte
 
 // String returns a string representation of the algorithm
 func (a Algorithm) String() string {
-
 	switch a {
 	case HmacSha1:
 		return "HMAC-SHA1"
@@ -29,5 +31,4 @@ func (a Algorithm) String() string {
 	default:
 		return fmt.Sprintf("unknown %x", byte(a))
 	}
-
 }
