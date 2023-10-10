@@ -266,7 +266,6 @@ func TestCalculate(t *testing.T) {
 			touched = true
 			return nil
 		})
-
 		assert.NoError(err)
 
 		if v.touch {
@@ -369,7 +368,6 @@ func TestList(t *testing.T) {
 	client.card = testCard
 
 	res, err := client.List()
-
 	assert.NoError(err)
 	assert.Len(res, len(vectors))
 
@@ -442,14 +440,11 @@ func TestPutAndCalculateTestVector(t *testing.T) {
 			}
 
 			err := client.Put("testvector", HmacSha1, Totp, 8, []byte("12345678901234567890"), false)
-
 			assert.NoError(err)
 
 			res, err := client.Calculate(test.Query, nil)
-
-			assert.Equal("94287082", res)
-
 			assert.NoError(err)
+			assert.Equal("94287082", res)
 
 			testCard.AssertExpectations(t)
 		})
@@ -520,8 +515,7 @@ func TestPutAndCalculateTestVector(t *testing.T) {
 		assert.NoError(err)
 
 		_, err = client.Calculate("test", nil)
-
-		assert.EqualError(err, "multiple matches found (testvector1,testvector2)")
+		assert.ErrorIs(err, errMultipleMatches)
 
 		testCard.AssertExpectations(t)
 	})
