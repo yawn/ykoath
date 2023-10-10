@@ -5,15 +5,16 @@ package ykoath
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"strings"
 )
 
-const (
-	errNoValuesFound   = "no values found in response (% x)"
-	errUnknownName     = "no such name configued (%s)"
-	errMultipleMatches = "multiple matches found (%s)"
-	touchRequired      = "touch-required"
+var (
+	errNoValuesFound   = errors.New("no values found in response")
+	errUnknownName     = errors.New("no such name configured")
+	errMultipleMatches = errors.New("multiple matches found")
+	errTouchRequired   = errors.New("touch-required")
 )
 
 // Calculate is a high-level function that first identifies all TOTP credentials
@@ -23,7 +24,7 @@ const (
 func (o *OATH) Calculate(name string, touchRequiredCallback func(string) error) (string, error) {
 	res, err := o.calculateAll()
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	// Support matching by name without issuer in the same way that ykman does
@@ -38,21 +39,19 @@ func (o *OATH) Calculate(name string, touchRequiredCallback func(string) error) 
 		}
 	}
 	if len(matches) > 1 {
-		return "", fmt.Errorf(errMultipleMatches, strings.Join(matches, ","))
+		return "", fmt.Errorf("%w: %s", errMultipleMatches, strings.Join(matches, ","))
 	}
 
 	if key == "" {
-		return "", fmt.Errorf(errUnknownName, name)
+		return "", fmt.Errorf("%w: %s", errUnknownName, name)
 	}
 
-	if code == touchRequired {
-
+	if code == errTouchRequired.Error() {
 		if err := touchRequiredCallback(name); err != nil {
 			return "", err
 		}
 
 		return o.calculate(key)
-
 	}
 
 	return code, nil
@@ -78,7 +77,6 @@ func (o *OATH) calculate(name string) (string, error) {
 
 	for _, tv := range res {
 		switch tv.tag {
-
 		case 0x76:
 			return otp(tv.value), nil
 
@@ -87,7 +85,7 @@ func (o *OATH) calculate(name string) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf(errNoValuesFound, res)
+	return "", fmt.Errorf("%w: %x", errNoValuesFound, res)
 }
 
 // calculateAll implements the "CALCULATE ALL" instruction to fetch all TOTP
@@ -111,12 +109,11 @@ func (o *OATH) calculateAll() (map[string]string, error) {
 
 	for _, tv := range res {
 		switch tv.tag {
-
 		case 0x71:
 			names = append(names, string(tv.value))
 
 		case 0x7c:
-			codes = append(codes, touchRequired)
+			codes = append(codes, errTouchRequired.Error())
 
 		case 0x76:
 			codes = append(codes, otp(tv.value))

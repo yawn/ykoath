@@ -24,7 +24,6 @@ func read(buf []byte) (tvs tvs) {
 	)
 
 	for {
-
 		if len(buf)-idx == 0 {
 			return tvs
 		}
@@ -39,14 +38,13 @@ func read(buf []byte) (tvs tvs) {
 
 		// Read the value
 		value = buf[idx : idx+length]
-		idx = idx + length
+		idx += length
 
 		// Append the result
 		tvs = append(tvs, tv{
 			tag:   tag,
 			value: value,
 		})
-
 	}
 }
 
@@ -59,15 +57,13 @@ func write(tag byte, values ...[]byte) []byte {
 	)
 
 	for _, value := range values {
-
 		// Skip nil values (useful for optional tlv segments)
 		if value == nil {
 			continue
 		}
 
 		buf = append(buf, value...)
-		length = length + len(value)
-
+		length += len(value)
 	}
 
 	// Write the tag unless we skip it (useful for reusing Write for sending the

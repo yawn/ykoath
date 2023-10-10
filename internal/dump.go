@@ -24,11 +24,10 @@ func Dump(buf []byte) {
 	}
 
 	if len(buf) > 0 {
-		chunks = append(chunks, buf[:])
+		chunks = append(chunks, buf)
 	}
 
 	for _, chunk := range chunks {
-
 		var line []string
 
 		for _, e := range chunk {
@@ -36,6 +35,5 @@ func Dump(buf []byte) {
 		}
 
 		fmt.Fprintf(os.Stderr, "%s,\n", strings.Join(line, ", "))
-
 	}
 }
