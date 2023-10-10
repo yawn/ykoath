@@ -37,7 +37,7 @@ func (o *OATH) Select() (*Select, error) {
 		case 0x79:
 			s.Version = tv.value
 		default:
-			return nil, fmt.Errorf(errUnknownTag, tv.tag)
+			return nil, fmt.Errorf("%w (%#x)", errUnknownTag, tv.tag)
 		}
 	}
 
