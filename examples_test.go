@@ -7,35 +7,50 @@ package ykoath
 
 import (
 	"fmt"
+	"log"
 	"time"
 )
 
 func Example() {
-	oath, _ := New()
+	oath, err := New()
+	if err != nil {
+		log.Print(err)
+		return
+	}
+
+	defer oath.Close()
 
 	// Fix the clock
 	oath.Clock = func() time.Time {
 		return time.Unix(59, 0)
 	}
 
-	defer oath.Close()
-
 	// Enable OATH for this session
-	_, _ = oath.Select()
+	if _, err = oath.Select(); err != nil {
+		log.Printf("Failed to select app: %v", err)
+		return
+	}
 
 	// Add the testvector
-	_ = oath.Put("testvector", HmacSha1, Totp, 8, []byte("12345678901234567890"), false)
+	if err = oath.Put("testvector", HmacSha1, Totp, 8, []byte("12345678901234567890"), false); err != nil {
+		log.Printf("Failed to put: %v", err)
+		return
+	}
 
-	names, _ := oath.List()
+	names, err := oath.List()
+	if err != nil {
+		log.Printf("Failed to list: %v", err)
+		return
+	}
 
 	for _, name := range names {
-		fmt.Println(name)
+		fmt.Printf("Name: %s\n", name)
 	}
 
 	otp, _ := oath.Calculate("testvector", nil)
-	fmt.Println(otp)
+	fmt.Printf("OTP: %s\n", otp)
 
 	// Output:
-	// testvector (HMAC-SHA1 TOTP)
-	// 94287082
+	// Name: testvector (HMAC-SHA1 TOTP)
+	// OTP: 94287082
 }
