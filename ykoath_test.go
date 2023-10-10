@@ -392,10 +392,10 @@ func TestList(t *testing.T) {
 
 func TestPutAndCalculateTestVector(t *testing.T) {
 
-	tt := []struct{
-		Name string
+	tt := []struct {
+		Name  string
 		Query string
-	} {
+	}{
 		{
 			"full identifier",
 			"testvector",
