@@ -26,7 +26,7 @@ func (o *OATH) Calculate(name string, touchRequiredCallback func(string) error) 
 		return "", nil
 	}
 
-	// support matching by name without issuer in the same way that ykman does
+	// Support matching by name without issuer in the same way that ykman does
 	// https://github.com/Yubico/yubikey-manager/blob/f493008d78a0ad09016f23dabd1cb658929d9c0e/ykman/cli/oath.py#L543
 	var key, code string
 	var matches []string
