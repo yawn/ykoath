@@ -21,15 +21,12 @@ type context interface {
 	Release() error
 }
 
-type debugger func(string, ...interface{})
-
 // OATH implements most parts of the TOTP portion of the YKOATH specification
 // https://developers.yubico.com/OATH/YKOATH_Protocol.html
 type OATH struct {
 	card    card
 	Clock   func() time.Time
 	context context
-	Debug   debugger
 }
 
 var (
@@ -96,17 +93,9 @@ func (o *OATH) send(cla, ins, p1, p2 byte, data ...[]byte) (tvs, error) {
 	)
 
 	for {
-		if o.Debug != nil {
-			o.Debug("SEND % x (%d)", send, len(send))
-		}
-
 		res, err := o.card.Transmit(send)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %w", errFailedToTransmit, err)
-		}
-
-		if o.Debug != nil {
-			o.Debug("RECV % x (%d)", res, len(res))
 		}
 
 		code = res[len(res)-2:]
@@ -116,15 +105,7 @@ func (o *OATH) send(cla, ins, p1, p2 byte, data ...[]byte) (tvs, error) {
 		case code.IsMore():
 			send = []byte{0x00, 0xa5, 0x00, 0x00}
 
-			if o.Debug != nil {
-				o.Debug("MORE %d", int(code[1]))
-			}
-
 		case code.IsSuccess():
-			if o.Debug != nil {
-				o.Debug("DONE")
-			}
-
 			return read(results), nil
 
 		default:
