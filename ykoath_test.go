@@ -566,6 +566,36 @@ func TestSelectTOTP(t *testing.T) {
 	testCard.AssertExpectations(t)
 }
 
+func TestReset(t *testing.T) {
+	var (
+		assert   = assert.New(t)
+		testCard = new(testCard)
+	)
+
+	testCard.
+		On(
+			"Transmit",
+			[]byte{
+				0x00, 0x04, 0xde, 0xad,
+			}).
+		Return(
+			[]byte{
+				0x90, 0x00,
+			},
+			nil,
+		).Once()
+
+	client := &OATH{
+		Timestep: DefaultTimeStep,
+		card:     testCard,
+	}
+
+	err := client.Reset()
+	assert.NoError(err)
+
+	testCard.AssertExpectations(t)
+}
+
 func init() { //nolint:gochecknoinits
 	vectors = map[string]*vector{
 		"test-01-1e5f2db9-477e-41af-bd2e-60bc569ae871": {
