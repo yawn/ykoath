@@ -6,14 +6,24 @@
 package ykoath
 
 import (
+	"flag"
 	"testing"
 
 	"github.com/ebfe/scard"
 	"github.com/stretchr/testify/require"
 )
 
+// canResetYubikey indicates whether the test running has constented to
+// destroying data on YubiKeys connected to the system.
+var canResetYubikey = flag.Bool("reset-yubikey", false,
+	"Flag required to run tests that access the yubikey")
+
 func TestPIN(t *testing.T) {
 	require := require.New(t)
+
+	if !*canResetYubikey {
+		t.Skip("not running test that accesses yubikey, provide --wipe-yubikey flag")
+	}
 
 	oath, err := New()
 	require.NoError(err)
