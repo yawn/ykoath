@@ -67,9 +67,9 @@ func (o *OATH) calculate(name string) (string, error) {
 
 	binary.BigEndian.PutUint64(buf, uint64(timestamp))
 
-	res, err := o.send(0x00, 0xa2, 0x00, 0x01,
-		write(0x71, []byte(name)),
-		write(0x74, buf),
+	res, err := o.send(0x00, insCalculate, 0x00, 0x01,
+		write(tagName, []byte(name)),
+		write(tagChallenge, buf),
 	)
 	if err != nil {
 		return "", err
@@ -77,7 +77,7 @@ func (o *OATH) calculate(name string) (string, error) {
 
 	for _, tv := range res {
 		switch tv.tag {
-		case 0x76:
+		case tagTruncated:
 			return otp(tv.value), nil
 
 		default:
@@ -100,7 +100,7 @@ func (o *OATH) calculateAll() (map[string]string, error) {
 
 	binary.BigEndian.PutUint64(buf, uint64(timestamp))
 
-	res, err := o.send(0x00, 0xa4, 0x00, 0x01,
+	res, err := o.send(0x00, insCalculateAll, 0x00, 0x01,
 		write(0x74, buf),
 	)
 	if err != nil {
@@ -109,13 +109,13 @@ func (o *OATH) calculateAll() (map[string]string, error) {
 
 	for _, tv := range res {
 		switch tv.tag {
-		case 0x71:
+		case tagName:
 			names = append(names, string(tv.value))
 
-		case 0x7c:
+		case tagTouch:
 			codes = append(codes, errTouchRequired.Error())
 
-		case 0x76:
+		case tagTruncated:
 			codes = append(codes, otp(tv.value))
 
 		default:

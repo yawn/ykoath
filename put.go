@@ -25,12 +25,12 @@ func (o *OATH) Put(name string, a Algorithm, t Type, digits uint8, key []byte, t
 	)
 
 	if touch {
-		prp = write(0x78, []byte{0x02})
+		prp = write(tagProperty, []byte{0x02})
 	}
 
-	_, err := o.send(0x00, 0x01, 0x00, 0x00,
-		write(0x71, []byte(name)),
-		write(0x73, []byte{alg, dig}, key),
+	_, err := o.send(0x00, insPut, 0x00, 0x00,
+		write(tagName, []byte(name)),
+		write(tagKey, []byte{alg, dig}, key),
 		prp,
 	)
 

@@ -8,7 +8,7 @@ import (
 )
 
 type tv struct {
-	tag   byte
+	tag   tag
 	value []byte
 }
 
@@ -19,7 +19,7 @@ func read(buf []byte) (tvs tvs) {
 	var (
 		idx    int
 		length int
-		tag    byte
+		tagv   tag
 		value  []byte
 	)
 
@@ -29,7 +29,7 @@ func read(buf []byte) (tvs tvs) {
 		}
 
 		// Read the tag
-		tag = buf[idx]
+		tagv = tag(buf[idx])
 		idx++
 
 		// Read the length
@@ -42,14 +42,14 @@ func read(buf []byte) (tvs tvs) {
 
 		// Append the result
 		tvs = append(tvs, tv{
-			tag:   tag,
+			tag:   tagv,
 			value: value,
 		})
 	}
 }
 
 // Write produces a tlv or lv packet (if the tag is 0)
-func write(tag byte, values ...[]byte) []byte {
+func write(tag tag, values ...[]byte) []byte {
 	var (
 		buf    []byte
 		length int
@@ -69,7 +69,7 @@ func write(tag byte, values ...[]byte) []byte {
 	// Write the tag unless we skip it (useful for reusing Write for sending the
 	// APDU)
 	if tag != 0x00 {
-		data = append(data, tag)
+		data = append(data, byte(tag))
 	}
 
 	// Write some length unless this is a one byte value (e.g. for the PUT

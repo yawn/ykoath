@@ -12,6 +12,42 @@ import (
 	"github.com/ebfe/scard"
 )
 
+type (
+	tag         byte
+	instruction byte
+)
+
+// TLV tags for credential data
+const (
+	tagName      tag = 0x71
+	tagNameList  tag = 0x72
+	tagKey       tag = 0x73
+	tagChallenge tag = 0x74
+	tagResponse  tag = 0x75
+	tagTruncated tag = 0x76
+	tagHOTP      tag = 0x77
+	tagProperty  tag = 0x78
+	tagVersion   tag = 0x79
+	tagImf       tag = 0x7A
+	tagAlgorithm tag = 0x7B
+	tagTouch     tag = 0x7C
+)
+
+// Instruction bytes for commands
+const (
+	insList          instruction = 0xA1
+	insSelect        instruction = 0xA4
+	insPut           instruction = 0x01
+	insDelete        instruction = 0x02
+	insSetCode       instruction = 0x03
+	insReset         instruction = 0x04
+	insRename        instruction = 0x05
+	insCalculate     instruction = 0xA2
+	insValidate      instruction = 0xA3
+	insCalculateAll  instruction = 0xA4
+	insSendRemaining instruction = 0xA5
+)
+
 type card interface {
 	Disconnect(scard.Disposition) error
 	Transmit([]byte) ([]byte, error)
@@ -85,11 +121,11 @@ func (o *OATH) Close() error {
 
 // send sends an APDU to the card
 // nolint: unparam
-func (o *OATH) send(cla, ins, p1, p2 byte, data ...[]byte) (tvs, error) {
+func (o *OATH) send(cla byte, ins instruction, p1, p2 byte, data ...[]byte) (tvs, error) {
 	var (
 		code    code
 		results []byte
-		send    = append([]byte{cla, ins, p1, p2}, write(0x00, data...)...)
+		send    = append([]byte{cla, byte(ins), p1, p2}, write(0x00, data...)...)
 	)
 
 	for {
@@ -103,7 +139,7 @@ func (o *OATH) send(cla, ins, p1, p2 byte, data ...[]byte) (tvs, error) {
 
 		switch {
 		case code.IsMore():
-			send = []byte{0x00, 0xa5, 0x00, 0x00}
+			send = []byte{0x00, byte(insSendRemaining), 0x00, 0x00}
 
 		case code.IsSuccess():
 			return read(results), nil
