@@ -60,16 +60,9 @@ func (o *OATH) Calculate(name string, touchRequiredCallback func(string) error) 
 // calculate implements the "CALCULATE" instruction to fetch a single
 // truncated TOTP response
 func (o *OATH) calculate(name string) (string, error) {
-	var (
-		buf       = make([]byte, 8)
-		timestamp = o.Clock().Unix() / 30
-	)
-
-	binary.BigEndian.PutUint64(buf, uint64(timestamp))
-
 	res, err := o.send(0x00, insCalculate, 0x00, 0x01,
 		write(tagName, []byte(name)),
-		write(tagChallenge, buf),
+		write(tagChallenge, o.totpChallenge()),
 	)
 	if err != nil {
 		return "", err
@@ -92,16 +85,12 @@ func (o *OATH) calculate(name string) (string, error) {
 // tokens and their codes (or a constant indicating a touch requirement)
 func (o *OATH) calculateAll() (map[string]string, error) {
 	var (
-		buf       = make([]byte, 8)
-		codes     []string
-		names     []string
-		timestamp = o.Clock().Unix() / 30
+		codes []string
+		names []string
 	)
 
-	binary.BigEndian.PutUint64(buf, uint64(timestamp))
-
 	res, err := o.send(0x00, insCalculateAll, 0x00, 0x01,
-		write(0x74, buf),
+		write(tagChallenge, o.totpChallenge()),
 	)
 	if err != nil {
 		return nil, err
@@ -130,6 +119,11 @@ func (o *OATH) calculateAll() (map[string]string, error) {
 	}
 
 	return all, nil
+}
+
+func (o *OATH) totpChallenge() []byte {
+	counter := o.Clock().Unix() / int64(o.Timestep.Seconds())
+	return binary.BigEndian.AppendUint64(nil, uint64(counter))
 }
 
 // otp converts a value into a (6 or 8 digits) one-time password

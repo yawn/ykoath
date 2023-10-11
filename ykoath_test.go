@@ -256,10 +256,12 @@ func TestCalculate(t *testing.T) {
 				).Once()
 		}
 
-		client := new(OATH)
-		client.card = testCard
-		client.Clock = func() time.Time {
-			return time.Unix(v.time, 0)
+		client := &OATH{
+			card:     testCard,
+			Timestep: DefaultTimeStep,
+			Clock: func() time.Time {
+				return time.Unix(v.time, 0)
+			},
 		}
 
 		res, err := client.Calculate(k, func(_ string) error {
@@ -364,8 +366,10 @@ func TestList(t *testing.T) {
 			nil,
 		).Once()
 
-	client := new(OATH)
-	client.card = testCard
+	client := &OATH{
+		card:     testCard,
+		Timestep: DefaultTimeStep,
+	}
 
 	res, err := client.List()
 	assert.NoError(err)
@@ -433,10 +437,12 @@ func TestPutAndCalculateTestVector(t *testing.T) {
 					nil,
 				).Once()
 
-			client := new(OATH)
-			client.card = testCard
-			client.Clock = func() time.Time {
-				return time.Unix(59, 0)
+			client := &OATH{
+				card:     testCard,
+				Timestep: DefaultTimeStep,
+				Clock: func() time.Time {
+					return time.Unix(59, 0)
+				},
 			}
 
 			err := client.Put("testvector", HmacSha1, Totp, 8, []byte("12345678901234567890"), false)
@@ -502,10 +508,12 @@ func TestPutAndCalculateTestVector(t *testing.T) {
 				nil,
 			).Once()
 
-		client := new(OATH)
-		client.card = testCard
-		client.Clock = func() time.Time {
-			return time.Unix(59, 0)
+		client := &OATH{
+			card:     testCard,
+			Timestep: DefaultTimeStep,
+			Clock: func() time.Time {
+				return time.Unix(59, 0)
+			},
 		}
 
 		err := client.Put("testvector1", HmacSha1, Totp, 8, []byte("12345678901234567890"), false)
@@ -541,8 +549,10 @@ func TestSelectTOTP(t *testing.T) {
 			nil,
 		)
 
-	client := new(OATH)
-	client.card = testCard
+	client := &OATH{
+		Timestep: DefaultTimeStep,
+		card:     testCard,
+	}
 
 	res, err := client.Select()
 

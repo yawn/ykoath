@@ -12,6 +12,11 @@ import (
 	"github.com/ebfe/scard"
 )
 
+const (
+	DefaultTimeStep    = 30 * time.Second
+	HMACMinimumKeySize = 14
+)
+
 type (
 	tag         byte
 	instruction byte
@@ -60,8 +65,10 @@ type context interface {
 // OATH implements most parts of the TOTP portion of the YKOATH specification
 // https://developers.yubico.com/OATH/YKOATH_Protocol.html
 type OATH struct {
+	Clock    func() time.Time
+	Timestep time.Duration
+
 	card    card
-	Clock   func() time.Time
 	context context
 }
 
@@ -96,9 +103,10 @@ func New() (*OATH, error) {
 			}
 
 			return &OATH{
-				card:    card,
-				Clock:   time.Now,
-				context: context,
+				Clock:    time.Now,
+				Timestep: DefaultTimeStep,
+				card:     card,
+				context:  context,
 			}, nil
 		}
 	}
