@@ -24,10 +24,13 @@ func (a Algorithm) String() string {
 	switch a {
 	case HmacSha1:
 		return "HMAC-SHA1"
+
 	case HmacSha256:
 		return "HMAC-SHA256"
+
 	case HmacSha512:
 		return "HMAC-SHA512"
+
 	default:
 		return fmt.Sprintf("unknown %x", byte(a))
 	}

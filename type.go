@@ -22,8 +22,10 @@ func (t Type) String() string {
 	switch t {
 	case Hotp:
 		return "HOTP"
+
 	case Totp:
 		return "TOTP"
+
 	default:
 		return fmt.Sprintf("unknown %x", byte(t))
 	}
