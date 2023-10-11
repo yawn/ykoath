@@ -7,10 +7,13 @@ import (
 	"bytes"
 	"crypto/hmac"
 	"crypto/rand"
+	"errors"
 	"fmt"
 
 	"golang.org/x/crypto/pbkdf2"
 )
+
+var errTokenResponse = errors.New("invalid token response")
 
 func (o *OATH) RemoveCode() error {
 	return o.SetCode(nil, HmacSha256)
@@ -86,7 +89,7 @@ func (o *OATH) Validate(code []byte) error {
 	}
 
 	if tokenResponse == nil {
-		return fmt.Errorf("missing token response")
+		return errTokenResponse
 	}
 
 	mac.Reset()
@@ -94,7 +97,7 @@ func (o *OATH) Validate(code []byte) error {
 	tokenResponseExpected = mac.Sum(nil)
 
 	if !bytes.Equal(tokenResponse, tokenResponseExpected) {
-		return fmt.Errorf("wrong response from token")
+		return errTokenResponse
 	}
 
 	return nil
