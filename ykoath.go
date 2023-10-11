@@ -131,7 +131,7 @@ func (o *OATH) Close() error {
 // nolint: unparam
 func (o *OATH) send(cla byte, ins instruction, p1, p2 byte, data ...[]byte) (tvs, error) {
 	var (
-		code    code
+		rcode   code
 		results []byte
 		send    = append([]byte{cla, byte(ins), p1, p2}, write(0x00, data...)...)
 	)
@@ -142,18 +142,18 @@ func (o *OATH) send(cla byte, ins instruction, p1, p2 byte, data ...[]byte) (tvs
 			return nil, fmt.Errorf("%w: %w", errFailedToTransmit, err)
 		}
 
-		code = res[len(res)-2:]
+		rcode = code(res[len(res)-2:])
 		results = append(results, res[0:len(res)-2]...)
 
 		switch {
-		case code.IsMore():
+		case rcode.IsMore():
 			send = []byte{0x00, byte(insSendRemaining), 0x00, 0x00}
 
-		case code.IsSuccess():
+		case rcode == errSuccess:
 			return read(results), nil
 
 		default:
-			return nil, code
+			return nil, rcode
 		}
 	}
 }

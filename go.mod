@@ -5,7 +5,10 @@ module cunicu.li/go-ykoath
 
 go 1.21.0
 
-require github.com/ebfe/scard v0.0.0-20230420082256-7db3f9b7c8a7
+require (
+	github.com/ebfe/scard v0.0.0-20230420082256-7db3f9b7c8a7
+	golang.org/x/crypto v0.14.0
+)
 
 require github.com/stretchr/testify v1.8.4 // test-only
 

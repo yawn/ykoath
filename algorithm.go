@@ -3,7 +3,13 @@
 
 package ykoath
 
-import "fmt"
+import (
+	"crypto/sha1" //nolint:gosec
+	"crypto/sha256"
+	"crypto/sha512"
+	"fmt"
+	"hash"
+)
 
 const (
 	// HmacSha1 describes a HMAC with SHA-1
@@ -33,5 +39,23 @@ func (a Algorithm) String() string {
 
 	default:
 		return fmt.Sprintf("unknown %x", byte(a))
+	}
+}
+
+// Hash returns a constructor to create a new hash.Hash object
+// for the given algorithm.
+func (a Algorithm) Hash() func() hash.Hash {
+	switch a {
+	case HmacSha1:
+		return sha1.New
+
+	case HmacSha256:
+		return sha256.New
+
+	case HmacSha512:
+		return sha512.New
+
+	default:
+		return nil
 	}
 }
