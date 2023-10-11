@@ -15,8 +15,6 @@ SPDX-License-Identifier: Apache-2.0
 The package `ykoath` implements the YubiKey [YKOATH protocol](https://developers.yubico.com/OATH/YKOATH_Protocol.html) over USB with the following exceptions:
 
 * No support for HOTP (only TOTP)
-* No support for `SET CODE` and subsequently no support for `VALIDATE` and `SELECT` challenges - no authentication schema except requiring touch is supported
-* No support for `RESET` (removing all state from device)
 
 ## Usage
 
