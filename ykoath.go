@@ -96,7 +96,7 @@ func New() (*OATH, error) {
 	}
 
 	for _, reader := range readers {
-		if strings.Contains(strings.ToLower(reader), "yubikey") {
+		if isYkoathToken(reader) {
 			card, err := context.Connect(reader, scard.ShareShared, scard.ProtocolAny)
 			if err != nil {
 				return nil, fmt.Errorf("%w: %w", errFailedToConnect, err)
@@ -156,4 +156,21 @@ func (o *OATH) send(cla byte, ins instruction, p1, p2 byte, data ...[]byte) (tvs
 			return nil, rcode
 		}
 	}
+}
+
+func isYkoathToken(token string) bool {
+	compatibleTokens := []string{
+		"yubikey",
+		"nitrokey",
+	}
+
+	token = strings.ToLower(token)
+
+	for _, comcompatibleToken := range compatibleTokens {
+		if strings.Contains(token, comcompatibleToken) {
+			return true
+		}
+	}
+
+	return false
 }

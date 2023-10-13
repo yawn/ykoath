@@ -22,7 +22,7 @@ func TestPIN(t *testing.T) {
 	require := require.New(t)
 
 	if !*canResetYubikey {
-		t.Skip("not running test that accesses yubikey, provide --wipe-yubikey flag")
+		t.Skip("not running test that accesses yubikey, provide --reset-yubikey flag")
 	}
 
 	oath, err := New()

@@ -62,6 +62,14 @@ func (o *OATH) Calculate(name string, touchRequiredCallback func(string) error) 
 	return code, nil
 }
 
+func (o *OATH) CalculateTOTP(name string) ([]byte, int, error) {
+	return o.CalculateHOTP(name, o.totpChallenge())
+}
+
+func (o *OATH) CalculateHOTP(name string, challenge []byte) ([]byte, int, error) {
+	return o.calculate(name, challenge, false)
+}
+
 // calculate implements the "CALCULATE" instruction
 func (o *OATH) calculate(name string, challenge []byte, truncate bool) ([]byte, int, error) {
 	var trunc byte
