@@ -12,9 +12,7 @@ SPDX-License-Identifier: Apache-2.0
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/cunicu/go-ykoath?style=flat-square)
 [![Go Reference](https://pkg.go.dev/badge/github.com/cunicu/go-ykoath.svg)](https://pkg.go.dev/github.com/cunicu/go-ykoath)
 
-The package `ykoath` implements the YubiKey [YKOATH protocol](https://developers.yubico.com/OATH/YKOATH_Protocol.html) over USB with the following exceptions:
-
-* No support for HOTP (only TOTP)
+The package `ykoath` implements the YubiKey [YKOATH protocol](https://developers.yubico.com/OATH/YKOATH_Protocol.html) for OATH-TOTP, OATH-HOTP and raw HMAC challenge-response.
 
 ## Usage
 
