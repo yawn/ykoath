@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 This is the first release of the module after a fork from [yawn/ykoath](https://github.com/yawn/ykoath).
 The code has been forked into the [cunicu organization](https://github.com/cunicu/go-ykoath) for updating
-it to the latest coding standards, upadting code quality and implementing changes for its use by
+it to the latest coding standards, updating code quality and implementing changes for its use by
 the [cunicu/hawkes](https://github.com/cunicu/hawkes) package.
 
 ### Added
@@ -58,7 +58,7 @@ the [cunicu/hawkes](https://github.com/cunicu/hawkes) package.
 
 ### Fixed
 
-- Fixed wrong datastructure bug, manifesting in scenarios with mixed touch/no-touch configurations (#8, thanks @asiragusa and @j0hnsmith)
+- Fixed wrong data structure bug, manifesting in scenarios with mixed touch/no-touch configurations (#8, thanks @asiragusa and @j0hnsmith)
 - Fixed Catalina naming issue (#11, thanks @nauxliu)
 
 ## [1.0.2] - 2018-09-05
