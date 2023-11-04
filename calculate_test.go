@@ -20,7 +20,7 @@ func TestCalculate(t *testing.T) {
 		require := require.New(t)
 
 		for _, v := range vs {
-			code, err := card.Calculate(v.Name, nil)
+			code, err := card.CalculateMatch(v.Name, nil)
 			require.NoError(err)
 			require.Equal(v.Code, code)
 		}
@@ -34,7 +34,7 @@ func TestCalculateMatchPartial(t *testing.T) {
 		err := card.Put("testvector", ykoath.HmacSha1, ykoath.Totp, 8, testSecretSHA1, false, 0)
 		require.NoError(err)
 
-		res, err := card.Calculate("test", nil)
+		res, err := card.CalculateMatch("test", nil)
 		require.NoError(err)
 		require.Equal("94287082", res)
 	})
@@ -47,7 +47,7 @@ func TestCalculateMatchFull(t *testing.T) {
 		err := card.Put("testvector", ykoath.HmacSha1, ykoath.Totp, 8, testSecretSHA1, false, 0)
 		require.NoError(err)
 
-		res, err := card.Calculate("testvector", nil)
+		res, err := card.CalculateMatch("testvector", nil)
 		require.NoError(err)
 		require.Equal("94287082", res)
 	})
@@ -63,7 +63,7 @@ func TestCalculateMatchMultiple(t *testing.T) {
 		err = card.Put("testvector2", ykoath.HmacSha1, ykoath.Totp, 8, testSecretSHA1, false, 0)
 		require.NoError(err)
 
-		_, err = card.Calculate("test", nil)
+		_, err = card.CalculateMatch("test", nil)
 		require.ErrorIs(err, ykoath.ErrMultipleMatches)
 	})
 }
@@ -82,18 +82,18 @@ func TestCalculateRequireTouch(t *testing.T) {
 		require := require.New(t)
 
 		// Callback missing
-		_, err := card.Calculate("touch", nil)
+		_, err := card.CalculateMatch("touch", nil)
 		require.ErrorIs(err, ykoath.ErrTouchCallbackRequired)
 
 		// Error raised in callback
-		_, err = card.Calculate("touch", func(s string) error {
+		_, err = card.CalculateMatch("touch", func(s string) error {
 			return errors.New("my error") //nolint:goerr113
 		})
 		require.ErrorContains(err, "my error")
 
 		// Callback called but button not pressed
 		touchRequested := false
-		_, err = card.Calculate("touch", func(s string) error {
+		_, err = card.CalculateMatch("touch", func(s string) error {
 			require.Equal(s, "touch required")
 			touchRequested = true
 			return nil
@@ -108,7 +108,7 @@ func TestCalculateTOTP(t *testing.T) {
 	withCard(t, []vector{v}, func(t *testing.T, card *ykoath.Card) {
 		require := require.New(t)
 
-		code, err := card.CalculateDirect(v.Name)
+		code, err := card.Calculate(v.Name)
 		require.NoError(err)
 		require.Equal(v.Code, code)
 	})
@@ -120,7 +120,7 @@ func TestCalculateHOTPCounterIncrement(t *testing.T) {
 		require := require.New(t)
 
 		for _, ev := range vectorsHOTP[:10] {
-			code, err := card.CalculateDirect(v.Name)
+			code, err := card.Calculate(v.Name)
 			require.NoError(err)
 			require.Equal(ev.Code, code)
 		}
@@ -132,7 +132,7 @@ func TestCalculateHOTPCounterInit(t *testing.T) {
 		require := require.New(t)
 
 		for _, v := range vectorsHOTP {
-			code, err := card.CalculateDirect(v.Name)
+			code, err := card.Calculate(v.Name)
 			require.NoError(err)
 			require.Equal(v.Code, code)
 		}
@@ -146,7 +146,7 @@ func TestCalculateRAW(t *testing.T) {
 	withCard(t, []vector{v}, func(t *testing.T, card *ykoath.Card) {
 		require := require.New(t)
 
-		resp, _, err := card.CalculateRaw(v.Name, fromString("hallo"))
+		resp, _, err := card.CalculateChallengeResponse(v.Name, fromString("hallo"))
 		require.NoError(err)
 		require.Equal(expResp, resp)
 		require.Len(resp, v.Alg.Hash()().Size())

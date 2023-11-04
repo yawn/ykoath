@@ -21,11 +21,11 @@ var (
 	ErrChallengeRequired     = errors.New("challenge required")
 )
 
-// Calculate is a high-level function that first identifies all TOTP credentials
+// CalculateMatch is a high-level function that first identifies all TOTP credentials
 // that are configured and returns the matching one (if no touch is required) or
 // fires the callback and then fetches the name again while blocking during
 // the device awaiting touch
-func (c *Card) Calculate(name string, touchRequiredCallback func(string) error) (string, error) {
+func (c *Card) CalculateMatch(name string, touchRequiredCallback func(string) error) (string, error) {
 	totpChallenge := c.totpChallenge()
 
 	codes, err := c.calculateAll(totpChallenge, true)
@@ -77,7 +77,7 @@ func (c *Card) Calculate(name string, touchRequiredCallback func(string) error) 
 	return code.OTP(), nil
 }
 
-func (c *Card) CalculateDirect(name string) (string, error) {
+func (c *Card) Calculate(name string) (string, error) {
 	d, err := c.calculate(name, c.totpChallenge(), true)
 	if err != nil {
 		return "", err
@@ -86,7 +86,7 @@ func (c *Card) CalculateDirect(name string) (string, error) {
 	return d.OTP(), nil
 }
 
-func (c *Card) CalculateRaw(name string, challenge []byte) ([]byte, int, error) {
+func (c *Card) CalculateChallengeResponse(name string, challenge []byte) ([]byte, int, error) {
 	d, err := c.calculate(name, challenge, false)
 	if err != nil {
 		return nil, -1, err

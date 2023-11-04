@@ -71,7 +71,7 @@ func Example() {
 		fmt.Printf("Name: %s\n", name)
 	}
 
-	otp, _ := c.Calculate("testvector", nil)
+	otp, _ := c.CalculateMatch("testvector", nil)
 	fmt.Printf("OTP: %s\n", otp)
 
 	// Output:
