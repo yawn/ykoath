@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2023-11-04
+
+### Added
+
+- Support for HOTP credentials.
+- Support for `SET CODE` / `VALIDATE` instructions for user authentication.
+- Support for `RESET` instruction which resets the applet to factory state. Attention: this will delete all secrets on the token.
+- Better tests and mocks using `cunicu.li/go-iso7816` module.
+
+### Changed
+
+- Refactored several central types of the module. E.g. `OATH` to `Card`.
+- Moved TLV handling to `cunicu.li/go-iso7816` module
+
 ## [1.1.0] - 2023-10-11
 
 This is the first release of the module after a fork from [yawn/ykoath](https://github.com/yawn/ykoath).
