@@ -6,7 +6,6 @@ package ykoath
 import "fmt"
 
 const (
-
 	// Hotp describes HMAC based one-time passwords (https://tools.ietf.org/html/rfc4226)
 	Hotp Type = 0x10
 

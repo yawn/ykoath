@@ -6,11 +6,14 @@ module cunicu.li/go-ykoath
 go 1.21.0
 
 require (
-	github.com/ebfe/scard v0.0.0-20230420082256-7db3f9b7c8a7
+	cunicu.li/go-iso7816 v0.1.0
 	golang.org/x/crypto v0.14.0
 )
 
-require github.com/stretchr/testify v1.8.4 // test-only
+require (
+	github.com/ebfe/scard v0.0.0-20230420082256-7db3f9b7c8a7 // test-only
+	github.com/stretchr/testify v1.8.4 // test-only
+)
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect

@@ -19,24 +19,24 @@ The package `ykoath` implements the YubiKey [YKOATH protocol](https://developers
 ## Usage
 
 ```go
-oath, err := ykoath.New()
+c, err := ykoath.New()
 if err != nil {
     log.Fatal(err)
 }
 
-defer oath.Close()
+defer c.Close()
 
-if _, err = oath.Select(); err != nil {
+if _, err = c.Select(); err != nil {
     log.Fatalf("Failed to select app: %v", err)
 }
 
-names, err := oath.List()
+names, err := c.List()
 if err != nil {
     log.Fatal("Failed to list slots: %v", err)
 }
 
 for _, name := range names {
-    calc, err := oath.Calculate(name.Name, func(name string) error {
+    calc, err := c.Calculate(name.Name, func(name string) error {
         log.Printf("*** Please touch your YubiKey to unlock slot: %q ***", name)
         return nil
     })
@@ -47,11 +47,11 @@ for _, name := range names {
     log.Printf("Got one-time-password %s for slot %q", calc, name)
 }
 
-if err := oath.Put("test", ykoath.HmacSha1, ykoath.Totp, 6, []byte("open sesame"), true); err != nil {
+if err := c.Put("test", ykoath.HmacSha1, ykoath.Totp, 6, []byte("open sesame"), true); err != nil {
     log.Fatal(err)
 }
 
-if err := oath.Put("test2", ykoath.HmacSha1, ykoath.Totp, 6, []byte("open sesame"), true); err != nil {
+if err := c.Put("test2", ykoath.HmacSha1, ykoath.Totp, 6, []byte("open sesame"), true); err != nil {
     log.Fatal(err)
 }
 ```

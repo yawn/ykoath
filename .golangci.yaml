@@ -35,7 +35,7 @@ linters-settings:
     sections:
     - standard
     - default
-    - prefix(cunicu.li/cunicu)
+    - prefix(cunicu.li/go-ykoath)
     - blank
     - dot
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2018 Joern Barthel <joern.barthel@kreuzwerker.de>
+// SPDX-FileCopyrightText: 2023 Steffen Vogel <post@steffenvogel.de>
 // SPDX-License-Identifier: Apache-2.0
 
 package ykoath_test
@@ -11,11 +11,12 @@ import (
 	"cunicu.li/go-ykoath"
 )
 
-func TestReset(t *testing.T) {
-	withCard(t, vectorsTOTP[:1], func(t *testing.T, card *ykoath.Card) {
+func TestDelete(t *testing.T) {
+	vs := vectorsTOTP[:1]
+	withCard(t, vs, func(t *testing.T, card *ykoath.Card) {
 		require := require.New(t)
 
-		err := card.Reset()
+		err := card.Delete(vs[0].Name)
 		require.NoError(err)
 
 		creds, err := card.List()
