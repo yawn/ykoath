@@ -1,15 +1,13 @@
 // SPDX-FileCopyrightText: 2023 Steffen Vogel <post@steffenvogel.de>
 // SPDX-License-Identifier: Apache-2.0
 
-package ykoath_test
+package ykoath
 
 import (
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-
-	"cunicu.li/go-ykoath/v2"
 )
 
 func TestCredential(t *testing.T) {
@@ -17,31 +15,31 @@ func TestCredential(t *testing.T) {
 
 	cases := []struct {
 		Data     []byte
-		Type     ykoath.Type
-		Expected ykoath.Credential
+		Type     Type
+		Expected credential
 	}{
 		{
 			Data: []byte("test"),
-			Type: ykoath.Totp,
-			Expected: ykoath.Credential{
+			Type: Totp,
+			Expected: credential{
 				Issuer:   "",
 				Name:     "test",
-				TimeStep: ykoath.DefaultTimeStep,
+				TimeStep: DefaultTimeStep,
 			},
 		},
 		{
 			Data: []byte("testIssuer:testName"),
-			Type: ykoath.Totp,
-			Expected: ykoath.Credential{
+			Type: Totp,
+			Expected: credential{
 				Issuer:   "testIssuer",
 				Name:     "testName",
-				TimeStep: ykoath.DefaultTimeStep,
+				TimeStep: DefaultTimeStep,
 			},
 		},
 		{
 			Data: []byte("45/testIssuer:testName"),
-			Type: ykoath.Totp,
-			Expected: ykoath.Credential{
+			Type: Totp,
+			Expected: credential{
 				Issuer:   "testIssuer",
 				Name:     "testName",
 				TimeStep: 45 * time.Second,
@@ -49,8 +47,8 @@ func TestCredential(t *testing.T) {
 		},
 		{
 			Data: []byte("45/testName"),
-			Type: ykoath.Totp,
-			Expected: ykoath.Credential{
+			Type: Totp,
+			Expected: credential{
 				Issuer:   "",
 				Name:     "testName",
 				TimeStep: 45 * time.Second,
@@ -59,7 +57,7 @@ func TestCredential(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		var cred ykoath.Credential
+		var cred credential
 
 		err := cred.Unmarshal(tc.Data, tc.Type)
 		assert.NoError(err)

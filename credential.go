@@ -4,7 +4,6 @@
 package ykoath
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -12,21 +11,19 @@ import (
 	"time"
 )
 
-var ErrMalformedCredential = errors.New("malformed credential")
-
 var credRegex = regexp.MustCompile(`^((?P<timestep>\d+)/)?((?P<issuer>[^:]+):)?(?P<name>.+)$`)
 
-type Credential struct {
+type credential struct {
 	TimeStep time.Duration
 	Name     string
 	Issuer   string
 }
 
-func (c Credential) String() string {
+func (c credential) String() string {
 	return fmt.Sprintf("%s: %s", c.Issuer, c.Name)
 }
 
-func (c Credential) Marshal() []byte {
+func (c credential) Marshal() []byte {
 	s := ""
 
 	if c.TimeStep != DefaultTimeStep {
@@ -42,7 +39,7 @@ func (c Credential) Marshal() []byte {
 	return []byte(s)
 }
 
-func (c *Credential) Unmarshal(b []byte, t Type) error {
+func (c *credential) Unmarshal(b []byte, t Type) error {
 	s := string(b)
 
 	if t == Hotp {
