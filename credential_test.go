@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	yk "cunicu.li/go-ykoath"
+	"cunicu.li/go-ykoath/v2"
 )
 
 func TestCredential(t *testing.T) {
@@ -17,31 +17,31 @@ func TestCredential(t *testing.T) {
 
 	cases := []struct {
 		Data     []byte
-		Type     yk.Type
-		Expected yk.Credential
+		Type     ykoath.Type
+		Expected ykoath.Credential
 	}{
 		{
 			Data: []byte("test"),
-			Type: yk.Totp,
-			Expected: yk.Credential{
+			Type: ykoath.Totp,
+			Expected: ykoath.Credential{
 				Issuer:   "",
 				Name:     "test",
-				TimeStep: yk.DefaultTimeStep,
+				TimeStep: ykoath.DefaultTimeStep,
 			},
 		},
 		{
 			Data: []byte("testIssuer:testName"),
-			Type: yk.Totp,
-			Expected: yk.Credential{
+			Type: ykoath.Totp,
+			Expected: ykoath.Credential{
 				Issuer:   "testIssuer",
 				Name:     "testName",
-				TimeStep: yk.DefaultTimeStep,
+				TimeStep: ykoath.DefaultTimeStep,
 			},
 		},
 		{
 			Data: []byte("45/testIssuer:testName"),
-			Type: yk.Totp,
-			Expected: yk.Credential{
+			Type: ykoath.Totp,
+			Expected: ykoath.Credential{
 				Issuer:   "testIssuer",
 				Name:     "testName",
 				TimeStep: 45 * time.Second,
@@ -49,8 +49,8 @@ func TestCredential(t *testing.T) {
 		},
 		{
 			Data: []byte("45/testName"),
-			Type: yk.Totp,
-			Expected: yk.Credential{
+			Type: ykoath.Totp,
+			Expected: ykoath.Credential{
 				Issuer:   "",
 				Name:     "testName",
 				TimeStep: 45 * time.Second,
@@ -59,7 +59,7 @@ func TestCredential(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		var cred yk.Credential
+		var cred ykoath.Credential
 
 		err := cred.Unmarshal(tc.Data, tc.Type)
 		assert.NoError(err)

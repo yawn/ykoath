@@ -13,7 +13,7 @@ import (
 	"cunicu.li/go-iso7816/test"
 	"github.com/stretchr/testify/require"
 
-	"cunicu.li/go-ykoath"
+	"cunicu.li/go-ykoath/v2"
 )
 
 // withCard is a helper to initialize a card for testing

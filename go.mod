@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2018 Joern Barthel <joern.barthel@kreuzwerker.de>
 // SPDX-License-Identifier: Apache-2.0
 
-module cunicu.li/go-ykoath
+module cunicu.li/go-ykoath/v2
 
 go 1.21.0
 

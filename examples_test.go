@@ -14,7 +14,7 @@ import (
 	"cunicu.li/go-iso7816/drivers/pcsc"
 	"github.com/ebfe/scard"
 
-	"cunicu.li/go-ykoath"
+	"cunicu.li/go-ykoath/v2"
 )
 
 func Example() {

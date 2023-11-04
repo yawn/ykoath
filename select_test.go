@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"cunicu.li/go-ykoath"
+	"cunicu.li/go-ykoath/v2"
 )
 
 func TestSelect(t *testing.T) {
