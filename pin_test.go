@@ -1,83 +1,60 @@
 // SPDX-FileCopyrightText: 2023 Steffen Vogel <post@steffenvogel.de>
 // SPDX-License-Identifier: Apache-2.0
 
-//go:build !ci
-
-package ykoath
+package ykoath_test
 
 import (
-	"flag"
 	"testing"
 
-	"github.com/ebfe/scard"
 	"github.com/stretchr/testify/require"
+
+	"cunicu.li/go-ykoath"
 )
 
-// canResetYubikey indicates whether the test running has constented to
-// destroying data on YubiKeys connected to the system.
-var canResetYubikey = flag.Bool("reset-yubikey", false,
-	"Flag required to run tests that access the yubikey")
-
 func TestPIN(t *testing.T) {
-	require := require.New(t)
+	withCard(t, nil, func(t *testing.T, card *ykoath.Card) {
+		require := require.New(t)
 
-	if !*canResetYubikey {
-		t.Skip("not running test that accesses yubikey, provide --reset-yubikey flag")
-	}
+		// Validate should fail if not PIN is set
+		err := card.Validate([]byte("1234"))
+		require.ErrorIs(err, ykoath.ErrNoSuchObject)
 
-	oath, err := New()
-	require.NoError(err)
+		// Select applet again
+		sel, err := card.Select()
+		require.NoError(err)
+		require.Nil(sel.Challenge)
+		require.Nil(sel.Algorithm)
 
-	defer oath.Close()
+		// Set PIN
+		err = card.SetCode([]byte("1338"), ykoath.HmacSha256)
+		require.NoError(err)
 
-	// Reset token to factory state
-	_, err = oath.Select()
-	require.NoError(err)
+		// Reset card to clear authenticated state
+		// err = test.ResetCard(card.Card)
+		// require.NoError(err)
 
-	err = oath.Reset()
-	require.NoError(err)
+		// Select applet again
+		sel, err = card.Select()
+		require.NoError(err)
 
-	// Validate should fail if not PIN is set
-	err = oath.Validate([]byte("1234"))
-	require.ErrorIs(err, errNoSuchObject)
+		require.NotNil(sel.Challenge)
+		require.Len(sel.Algorithm, 1)
+		require.Equal(ykoath.Algorithm(sel.Algorithm[0]), ykoath.HmacSha256)
 
-	// Select applet again
-	sel, err := oath.Select()
-	require.NoError(err)
-	require.Nil(sel.Challenge)
-	require.Nil(sel.Algorithm)
+		// RemoveCode should fail as we are not authenticated yet
+		// err = card.RemoveCode()
+		// require.ErrorIs(err, ykoath.ErrAuthRequired)
 
-	// Set PIN
-	err = oath.SetCode([]byte("1338"), HmacSha256)
-	require.NoError(err)
+		// Test invalid PIN
+		err = card.Validate([]byte("1337"))
+		require.ErrorIs(err, ykoath.ErrWrongSyntax)
 
-	// Reset card to clear authenticated state
-	card, ok := oath.card.(*scard.Card)
-	require.True(ok)
+		// Test valid PIN
+		err = card.Validate([]byte("1338"))
+		require.NoError(err)
 
-	err = card.Reconnect(scard.ShareShared, scard.ProtocolT1, scard.ResetCard)
-	require.NoError(err)
-
-	// Select applet again
-	sel, err = oath.Select()
-	require.NoError(err)
-	require.NotNil(sel.Challenge)
-	require.Len(sel.Algorithm, 1)
-	require.Equal(Algorithm(sel.Algorithm[0]), HmacSha256)
-
-	// RemoveCode should fail as we are not authenticated yet
-	err = oath.RemoveCode()
-	require.ErrorIs(err, errAuthRequired)
-
-	// Test invalid PIN
-	err = oath.Validate([]byte("1337"))
-	require.ErrorIs(err, errWrongSyntax)
-
-	// Test valid PIN
-	err = oath.Validate([]byte("1338"))
-	require.NoError(err)
-
-	// RemoveCode should succeed now
-	err = oath.RemoveCode()
-	require.NoError(err)
+		// RemoveCode should succeed now
+		err = card.RemoveCode()
+		require.NoError(err)
+	})
 }

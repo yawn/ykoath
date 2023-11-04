@@ -4,12 +4,14 @@
 package ykoath
 
 import (
+	"crypto/rand"
 	"errors"
 	"fmt"
-	"strings"
+	"io"
 	"time"
 
-	"github.com/ebfe/scard"
+	iso "cunicu.li/go-iso7816"
+	"cunicu.li/go-iso7816/encoding/tlv"
 )
 
 const (
@@ -17,160 +19,101 @@ const (
 	HMACMinimumKeySize = 14
 )
 
-type (
-	tag         byte
-	instruction byte
-)
-
 // TLV tags for credential data
 const (
-	tagName      tag = 0x71
-	tagNameList  tag = 0x72
-	tagKey       tag = 0x73
-	tagChallenge tag = 0x74
-	tagResponse  tag = 0x75
-	tagTruncated tag = 0x76
-	tagHOTP      tag = 0x77
-	tagProperty  tag = 0x78
-	tagVersion   tag = 0x79
-	tagImf       tag = 0x7A
-	tagAlgorithm tag = 0x7B
-	tagTouch     tag = 0x7C
+	tagName      tlv.Tag = 0x71
+	tagNameList  tlv.Tag = 0x72
+	tagKey       tlv.Tag = 0x73
+	tagChallenge tlv.Tag = 0x74
+	tagResponse  tlv.Tag = 0x75
+	tagTruncated tlv.Tag = 0x76
+	tagHOTP      tlv.Tag = 0x77
+	tagProperty  tlv.Tag = 0x78
+	tagVersion   tlv.Tag = 0x79
+	tagImf       tlv.Tag = 0x7A
+	tagAlgorithm tlv.Tag = 0x7B
+	tagTouch     tlv.Tag = 0x7C
 )
 
 // Instruction bytes for commands
 const (
-	insList          instruction = 0xA1
-	insSelect        instruction = 0xA4
-	insPut           instruction = 0x01
-	insDelete        instruction = 0x02
-	insSetCode       instruction = 0x03
-	insReset         instruction = 0x04
-	insRename        instruction = 0x05
-	insCalculate     instruction = 0xA2
-	insValidate      instruction = 0xA3
-	insCalculateAll  instruction = 0xA4
-	insSendRemaining instruction = 0xA5
+	insList          iso.Instruction = 0xA1
+	insSelect        iso.Instruction = 0xA4
+	insPut           iso.Instruction = 0x01
+	insDelete        iso.Instruction = 0x02
+	insSetCode       iso.Instruction = 0x03
+	insReset         iso.Instruction = 0x04
+	insRename        iso.Instruction = 0x05
+	insCalculate     iso.Instruction = 0xA2
+	insValidate      iso.Instruction = 0xA3
+	insCalculateAll  iso.Instruction = 0xA4
+	insSendRemaining iso.Instruction = 0xA5
 )
 
-type card interface {
-	Disconnect(scard.Disposition) error
-	Transmit([]byte) ([]byte, error)
-}
+// Card implements most parts of the TOTP portion of the YKOATH specification
+// https://developers.yubico.com/Card/YKOATH_Protocol.html
+type Card struct {
+	*iso.Card
 
-type context interface {
-	Release() error
-}
-
-// OATH implements most parts of the TOTP portion of the YKOATH specification
-// https://developers.yubico.com/OATH/YKOATH_Protocol.html
-type OATH struct {
 	Clock    func() time.Time
 	Timestep time.Duration
+	Rand     io.Reader
 
-	card    card
-	context context
+	tx *iso.Transaction
 }
 
-var (
-	errFailedToConnect            = errors.New("failed to connect to reader")
-	errFailedToDisconnect         = errors.New("failed to disconnect from reader")
-	errFailedToEstablishContext   = errors.New("failed to establish context")
-	errFailedToListReaders        = errors.New("failed to list readers")
-	errFailedToListSuitableReader = errors.New("no suitable reader found")
-	errFailedToReleaseContext     = errors.New("failed to release context")
-	errFailedToTransmit           = errors.New("failed to transmit APDU")
-	errUnknownTag                 = errors.New("unknown tag")
-)
+var errUnknownTag = errors.New("unknown tag")
 
-// New initializes a new OATH session
-func New() (*OATH, error) {
-	context, err := scard.EstablishContext()
+// NewCard initializes a new OATH card.
+func NewCard(pcscCard iso.PCSCCard) (*Card, error) {
+	isoCard := iso.NewCard(pcscCard)
+	isoCard.InsGetRemaining = insSendRemaining
+
+	tx, err := isoCard.NewTransaction()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", errFailedToEstablishContext, err)
+		return nil, fmt.Errorf("failed to initiate transaction: %w", err)
 	}
 
-	readers, err := context.ListReaders()
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", errFailedToListReaders, err)
-	}
+	return &Card{
+		Card:     isoCard,
+		Clock:    time.Now,
+		Timestep: DefaultTimeStep,
+		Rand:     rand.Reader,
 
-	for _, reader := range readers {
-		if isYkoathToken(reader) {
-			card, err := context.Connect(reader, scard.ShareShared, scard.ProtocolAny)
-			if err != nil {
-				return nil, fmt.Errorf("%w: %w", errFailedToConnect, err)
-			}
-
-			return &OATH{
-				Clock:    time.Now,
-				Timestep: DefaultTimeStep,
-				card:     card,
-				context:  context,
-			}, nil
-		}
-	}
-
-	return nil, fmt.Errorf("%w (out of %d)", errFailedToListSuitableReader, len(readers))
+		tx: tx,
+	}, nil
 }
 
 // Close terminates an OATH session
-func (o *OATH) Close() error {
-	if err := o.card.Disconnect(scard.LeaveCard); err != nil {
-		return fmt.Errorf("%w: %w", errFailedToDisconnect, err)
-	}
-
-	if err := o.context.Release(); err != nil {
-		return fmt.Errorf("%w: %w", errFailedToReleaseContext, err)
+func (c *Card) Close() error {
+	if c.tx != nil {
+		if err := c.tx.EndTransaction(); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
-// send sends an APDU to the card
-// nolint: unparam
-func (o *OATH) send(cla byte, ins instruction, p1, p2 byte, data ...[]byte) (tvs, error) {
-	var (
-		rcode   code
-		results []byte
-		send    = append([]byte{cla, byte(ins), p1, p2}, write(0x00, data...)...)
-	)
-
-	for {
-		res, err := o.card.Transmit(send)
-		if err != nil {
-			return nil, fmt.Errorf("%w: %w", errFailedToTransmit, err)
-		}
-
-		rcode = code(res[len(res)-2:])
-		results = append(results, res[0:len(res)-2]...)
-
-		switch {
-		case rcode.IsMore():
-			send = []byte{0x00, byte(insSendRemaining), 0x00, 0x00}
-
-		case rcode == errSuccess:
-			return read(results), nil
-
-		default:
-			return nil, rcode
-		}
-	}
-}
-
-func isYkoathToken(token string) bool {
-	compatibleTokens := []string{
-		"yubikey",
-		"nitrokey",
+func (c *Card) send(ins iso.Instruction, p1, p2 byte, tvsCmd ...tlv.TagValue) (tvsResp []tlv.TagValue, err error) {
+	data, err := tlv.EncodeSimple(tvsCmd...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode command: %w", err)
 	}
 
-	token = strings.ToLower(token)
-
-	for _, comcompatibleToken := range compatibleTokens {
-		if strings.Contains(token, comcompatibleToken) {
-			return true
-		}
+	res, err := c.Card.Send(&iso.CAPDU{
+		Ins:  ins,
+		P1:   p1,
+		P2:   p2,
+		Data: data,
+	})
+	if err != nil {
+		return nil, wrapError(err)
 	}
 
-	return false
+	if tvsResp, err = tlv.DecodeSimple(res); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	return tvsResp, nil
 }

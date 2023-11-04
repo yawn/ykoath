@@ -3,10 +3,14 @@
 
 package ykoath
 
-// Delete sends a "DELETE" instruction, removing one named OATH credential
-func (o *OATH) Delete(name string) error {
-	_, err := o.send(0x00, insDelete, 0x00, 0x00,
-		write(tagName, []byte(name)))
+import (
+	"cunicu.li/go-iso7816/encoding/tlv"
+)
 
+// Delete sends a "DELETE" instruction, removing one named OATH credential
+func (c *Card) Delete(name string) error {
+	_, err := c.send(insDelete, 0x00, 0x00,
+		tlv.New(tagName, []byte(name)),
+	)
 	return err
 }

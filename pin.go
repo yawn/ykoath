@@ -6,59 +6,61 @@ package ykoath
 import (
 	"bytes"
 	"crypto/hmac"
-	"crypto/rand"
 	"errors"
 	"fmt"
 
+	"cunicu.li/go-iso7816/encoding/tlv"
 	"golang.org/x/crypto/pbkdf2"
 )
 
 var errTokenResponse = errors.New("invalid token response")
 
-func (o *OATH) RemoveCode() error {
-	return o.SetCode(nil, HmacSha256)
+func (c *Card) RemoveCode() error {
+	_, err := c.send(insSetCode, 0x00, 0x00, tlv.New(tagKey))
+	return err
 }
 
 // SetCode sets a new PIN.
 // This command no authentication.
-func (o *OATH) SetCode(code []byte, alg Algorithm) error {
-	sel, err := o.Select()
+func (c *Card) SetCode(code []byte, alg Algorithm) error {
+	sel, err := c.Select()
 	if err != nil {
 		return err
 	}
 
 	key := pbkdf2.Key(code, sel.Name, 1000, 16, alg.Hash())
 
-	myChallenge, err := getChallenge()
-	if err != nil {
-		return err
+	myChallenge := make([]byte, 8)
+	if _, err := c.Rand.Read(myChallenge); err != nil {
+		return fmt.Errorf("failed to generate challenge: %w", err)
 	}
 
 	mac := hmac.New(alg.Hash(), key)
 	mac.Write(myChallenge)
 	myResponse := mac.Sum(nil)
 
-	_, err = o.send(0x00, insSetCode, 0x00, 0x00,
-		write(tagKey, []byte{byte(alg)}, key),
-		write(tagChallenge, myChallenge),
-		write(tagResponse, myResponse),
-	)
+	algKey := append([]byte{byte(alg)}, key...)
 
+	_, err = c.send(insSetCode, 0x00, 0x00,
+		tlv.New(tagKey, algKey),
+		tlv.New(tagChallenge, myChallenge),
+		tlv.New(tagResponse, myResponse),
+	)
 	return err
 }
 
 // Reset resets the application to just-installed state.
 // This command requires no authentication.
-func (o *OATH) Validate(code []byte) error {
+func (c *Card) Validate(code []byte) error {
 	var myChallenge, tokenResponse, tokenResponseExpected []byte
 
-	sel, err := o.Select()
+	sel, err := c.Select()
 	if err != nil {
 		return err
 	}
 
 	if len(sel.Algorithm) < 1 || len(sel.Name) < 1 {
-		return errNoSuchObject
+		return ErrNoSuchObject
 	}
 
 	tokenChallenge := sel.Challenge
@@ -70,21 +72,21 @@ func (o *OATH) Validate(code []byte) error {
 	myResponse := mac.Sum(nil)
 
 	myChallenge = make([]byte, 8)
-	if _, err := rand.Read(myChallenge); err != nil {
+	if _, err := c.Rand.Read(myChallenge); err != nil {
 		return fmt.Errorf("failed to generate challenge: %w", err)
 	}
 
-	res, err := o.send(0x00, insValidate, 0x00, 0x00,
-		write(tagResponse, myResponse),
-		write(tagChallenge, myChallenge),
+	tvs, err := c.send(insValidate, 0x00, 0x00,
+		tlv.New(tagResponse, myResponse),
+		tlv.New(tagChallenge, myChallenge),
 	)
 	if err != nil {
 		return err
 	}
 
-	for _, tv := range res {
-		if tv.tag == tagResponse {
-			tokenResponse = tv.value
+	for _, tv := range tvs {
+		if tv.Tag == tagResponse {
+			tokenResponse = tv.Value
 		}
 	}
 
@@ -101,12 +103,4 @@ func (o *OATH) Validate(code []byte) error {
 	}
 
 	return nil
-}
-
-func getChallenge() ([]byte, error) {
-	challenge := make([]byte, 8)
-	if _, err := rand.Read(challenge); err != nil {
-		return nil, fmt.Errorf("failed to generate challenge: %w", err)
-	}
-	return challenge, nil
 }
