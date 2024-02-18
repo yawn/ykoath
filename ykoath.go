@@ -32,6 +32,7 @@ type OATH struct {
 }
 
 const (
+	errFailedChallenge            = "response from key did not match challenge"
 	errFailedToConnect            = "failed to connect to reader"
 	errFailedToDisconnect         = "failed to disconnect from reader"
 	errFailedToEstablishContext   = "failed to establish context"

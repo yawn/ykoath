@@ -3,23 +3,33 @@ package ykoath
 import (
 	"encoding/binary"
 	"fmt"
+	"math"
 	"strings"
 )
 
 const (
-	errNoValuesFound = "no values found in response (% x)"
-	errUnknownName   = "no such name configued (%s)"
+	errNoValuesFound   = "no values found in response (% x)"
+	errUnknownName     = "no such name configued (%s)"
 	errMultipleMatches = "multiple matches found (%s)"
-	touchRequired    = "touch-required"
+	touchRequired      = "touch-required"
 )
+
+// NoTouchCallback performas a noop for users that have no touch support
+func NoTouchCallback(_ string) error {
+	return nil
+}
+
+// ErrorTouchCallback raises an error for users that have no touch support
+func ErrorTouchCallback(_ string) error {
+	return fmt.Errorf("requires touch but no callback specified")
+}
 
 // Calculate is a high-level function that first identifies all TOTP credentials
 // that are configured and returns the matching one (if no touch is required) or
 // fires the callback and then fetches the name again while blocking during
 // the device awaiting touch
 func (o *OATH) Calculate(name string, touchRequiredCallback func(string) error) (string, error) {
-
-	res, err := o.calculateAll()
+	res, err := o.CalculateAll()
 
 	if err != nil {
 		return "", nil
@@ -50,7 +60,7 @@ func (o *OATH) Calculate(name string, touchRequiredCallback func(string) error) 
 			return "", err
 		}
 
-		return o.calculate(key)
+		return o.CalculateOne(key)
 
 	}
 
@@ -58,9 +68,9 @@ func (o *OATH) Calculate(name string, touchRequiredCallback func(string) error) 
 
 }
 
-// calculate implements the "CALCULATE" instruction to fetch a single
+// CalculateOne implements the "CALCULATE" instruction to fetch a single
 // truncated TOTP response
-func (o *OATH) calculate(name string) (string, error) {
+func (o *OATH) CalculateOne(name string) (string, error) {
 
 	var (
 		buf       = make([]byte, 8)
@@ -69,9 +79,9 @@ func (o *OATH) calculate(name string) (string, error) {
 
 	binary.BigEndian.PutUint64(buf, uint64(timestamp))
 
-	res, err := o.send(0x00, 0xa2, 0x00, 0x01,
-		write(0x71, []byte(name)),
-		write(0x74, buf),
+	res, err := o.send(0x00, instCalculate, 0x00, rsTruncatedResponse,
+		write(tagName, []byte(name)),
+		write(tagChallenge, buf),
 	)
 
 	if err != nil {
@@ -82,7 +92,7 @@ func (o *OATH) calculate(name string) (string, error) {
 
 		switch tv.tag {
 
-		case 0x76:
+		case tagTruncatedResponse:
 			return otp(tv.value), nil
 
 		default:
@@ -95,9 +105,9 @@ func (o *OATH) calculate(name string) (string, error) {
 
 }
 
-// calculateAll implements the "CALCULATE ALL" instruction to fetch all TOTP
+// CalculateAll implements the "CALCULATE ALL" instruction to fetch all TOTP
 // tokens and their codes (or a constant indicating a touch requirement)
-func (o *OATH) calculateAll() (map[string]string, error) {
+func (o *OATH) CalculateAll() (map[string]string, error) {
 
 	var (
 		buf       = make([]byte, 8)
@@ -108,8 +118,8 @@ func (o *OATH) calculateAll() (map[string]string, error) {
 
 	binary.BigEndian.PutUint64(buf, uint64(timestamp))
 
-	res, err := o.send(0x00, 0xa4, 0x00, 0x01,
-		write(0x74, buf),
+	res, err := o.send(0x00, instCalculateAll, 0x00, rsTruncatedResponse,
+		write(tagChallenge, buf),
 	)
 
 	if err != nil {
@@ -120,14 +130,22 @@ func (o *OATH) calculateAll() (map[string]string, error) {
 
 		switch tv.tag {
 
-		case 0x71:
+		case tagName:
 			names = append(names, string(tv.value))
 
-		case 0x7c:
+		case tagTouch:
 			codes = append(codes, touchRequired)
 
-		case 0x76:
+		case tagResponse:
+			o.Debug("tag no full response: %x", tv.value)
+			return nil, fmt.Errorf("unable to handle full response %x", tv.value)
+
+		case tagTruncatedResponse:
 			codes = append(codes, otp(tv.value))
+
+		case tagNoResponse:
+			o.Debug("tag no response. Is HOTP %x", tv.value)
+			return nil, fmt.Errorf("unable to handle HOTP response %x", tv.value)
 
 		default:
 			return nil, fmt.Errorf(errUnknownTag, tv.tag)
@@ -147,9 +165,10 @@ func (o *OATH) calculateAll() (map[string]string, error) {
 
 // otp converts a value into a (6 or 8 digits) one-time password
 func otp(value []byte) string {
-
-	digits := value[0]
+	digits := int(value[0])
 	code := binary.BigEndian.Uint32(value[1:])
+	// Limit code to a maximum number of digits
+	code = code % uint32(math.Pow(10.0, float64(digits)))
+	// Format as string with a minimum number of digits, padded with 0s
 	return fmt.Sprintf(fmt.Sprintf("%%0%dd", digits), code)
-
 }
