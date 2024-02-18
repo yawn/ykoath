@@ -1,7 +1,9 @@
 package ykoath
 
 import (
+	"encoding/binary"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -37,46 +39,85 @@ const (
 	errFailedToListSuitableReader = "no suitable reader found (out of %d readers)"
 	errFailedToReleaseContext     = "failed to release context"
 	errFailedToTransmit           = "failed to transmit APDU"
+	errFailedToReadSerial         = "failed to read serial"
 	errUnknownTag                 = "unknown tag (%x)"
 )
 
 // New initializes a new OATH session
 func New() (*OATH, error) {
+	return NewFromSerial("")
+}
 
+// NewFromSerial creates an OATH session for a specific key
+func NewFromSerial(serial string) (*OATH, error) {
+	return NewFromSerialList([]string{serial})
+}
+
+// NewFromSerialList creates an OATH session from the first match found for a list of keys
+func NewFromSerialList(serialList []string) (*OATH, error) {
+	yubikeys, err := NewSet()
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, yubikey := range yubikeys {
+		if len(serialList) == 0 {
+			return yubikey, nil
+		}
+
+		serial, err := yubikey.Serial()
+		if err != nil {
+			return nil, errors.Wrapf(err, errFailedToReadSerial)
+		}
+
+		for _, match := range serialList {
+			if serial == match {
+				return yubikey, nil
+			}
+		}
+	}
+
+	return nil, fmt.Errorf(errFailedToListSuitableReader, len(yubikeys))
+}
+
+// NewSet returns a slice of all Yubikeys on the system
+func NewSet() ([]*OATH, error) {
 	context, err := scard.EstablishContext()
 
 	if err != nil {
-		return nil, errors.Wrapf(err, errFailedToEstablishContext)
+		return []*OATH{}, errors.Wrapf(err, errFailedToEstablishContext)
 	}
 
 	readers, err := context.ListReaders()
 
 	if err != nil {
-		return nil, errors.Wrapf(err, errFailedToListReaders)
+		return []*OATH{}, errors.Wrapf(err, errFailedToListReaders)
 	}
+
+	var yubikeys []*OATH
 
 	for _, reader := range readers {
-
-		if strings.Contains(strings.ToLower(reader), "yubikey") {
-
-			card, err := context.Connect(reader, scard.ShareShared, scard.ProtocolAny)
-
-			if err != nil {
-				return nil, errors.Wrapf(err, errFailedToConnect)
-			}
-
-			return &OATH{
-				card:    card,
-				Clock:   time.Now,
-				context: context,
-			}, nil
-
+		if !strings.Contains(strings.ToLower(reader), "yubikey") {
+			continue
 		}
 
+		card, err := context.Connect(reader, scard.ShareShared, scard.ProtocolAny)
+
+		if err != nil {
+			return nil, errors.Wrapf(err, errFailedToConnect)
+		}
+
+		o := OATH{
+			card:    card,
+			Clock:   time.Now,
+			context: context,
+		}
+
+		yubikeys = append(yubikeys, &o)
 	}
 
-	return nil, fmt.Errorf(errFailedToListSuitableReader, len(readers))
-
+	return yubikeys, nil
 }
 
 // Close terminates an OATH session
@@ -92,6 +133,24 @@ func (o *OATH) Close() error {
 
 	return nil
 
+}
+
+func (o *OATH) Serial() (string, error) {
+	_, err := o.card.Transmit([]byte{0x00, 0xA4, 0x04, 0x00, 0x08, 0xA0, 0x00, 0x00, 0x05, 0x27, 0x47, 0x11, 0x17})
+	if err != nil {
+		return "", err
+	}
+	resp, err := o.card.Transmit([]byte{0x00, 0x1d, 0x00, 0x00})
+	if err != nil {
+		return "", err
+	}
+	kvs := read(resp[1 : len(resp)-2])
+	for _, item := range kvs {
+		if item.tag == 0x02 {
+			return strconv.FormatUint(uint64(binary.BigEndian.Uint32(item.value)), 10), nil
+		}
+	}
+	return "", errors.Wrapf(fmt.Errorf("no serial tag found"), errFailedToReleaseContext)
 }
 
 // send sends an APDU to the card
