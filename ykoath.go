@@ -45,7 +45,7 @@ const (
 
 // New initializes a new OATH session
 func New() (*OATH, error) {
-	return NewFromSerial("")
+	return NewFromSerialList([]string{})
 }
 
 // NewFromSerial creates an OATH session for a specific key
