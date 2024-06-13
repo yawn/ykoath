@@ -2,6 +2,7 @@ package ykoath
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"testing"
 	"time"
@@ -392,10 +393,10 @@ func TestList(t *testing.T) {
 
 func TestPutAndCalculateTestVector(t *testing.T) {
 
-	tt := []struct{
-		Name string
+	tt := []struct {
+		Name  string
 		Query string
-	} {
+	}{
 		{
 			"full identifier",
 			"testvector",
@@ -527,7 +528,11 @@ func TestPutAndCalculateTestVector(t *testing.T) {
 
 		_, err = client.Calculate("test", nil)
 
-		assert.EqualError(err, "multiple matches found (testvector1,testvector2)")
+		if msg := err.Error(); !slices.Contains([]string{
+			"multiple matches found (testvector1,testvector2)",
+			"multiple matches found (testvector2,testvector1)"}, msg) {
+			assert.Fail(fmt.Sprintf("unexpected error message %q", msg))
+		}
 
 		testCard.AssertExpectations(t)
 	})
